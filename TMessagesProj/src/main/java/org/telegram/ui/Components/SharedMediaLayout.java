@@ -4278,7 +4278,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
     public boolean isOptionsItemVisible() {
         final int type = mediaPages[0].selectedType;
-        return type == TAB_PHOTOVIDEO || type == TAB_STORIES || type == TAB_ARCHIVED_STORIES || type == TAB_SAVED_DIALOGS || type == TAB_BOT_PREVIEWS || type == TAB_GIFTS && giftsContainer.canFilter();
+        return type == TAB_PHOTOVIDEO || type == TAB_STORIES || type == TAB_ARCHIVED_STORIES || type == TAB_SAVED_DIALOGS || type == TAB_BOT_PREVIEWS || type == TAB_GIFTS && giftsContainer != null && giftsContainer.canFilter();
     }
 
     public int getSelectedTab() {

@@ -265,6 +265,7 @@ import org.telegram.ui.bots.BotAdView;
 import org.telegram.ui.bots.BotCommandsMenuView;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
+import org.telegram.ui.Profile.ProfileActivity;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -326,7 +327,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private FrameLayout progressView;
     private View progressView2;
     private FrameLayout bottomOverlay;
-    protected ChatActivityEnterView chatActivityEnterView;
+    public ChatActivityEnterView chatActivityEnterView;
     private ChatActivityEnterTopView chatActivityEnterTopView;
     private int chatActivityEnterViewAnimateFromTop;
     private boolean chatActivityEnterViewAnimateBeforeSending;
