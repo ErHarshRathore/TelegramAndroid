@@ -22,6 +22,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -611,18 +612,22 @@ public abstract class BaseFragment {
     }
 
     public boolean presentFragment(BaseFragment fragment) {
+        Log.d("TagHarsh", "BaseFragment::presentFragment1 - " + this.getClass().getSimpleName() + " -> " + fragment.getClass().getSimpleName());
         return allowPresentFragment() && parentLayout != null && parentLayout.presentFragment(fragment);
     }
 
     public boolean presentFragment(BaseFragment fragment, boolean removeLast) {
+        Log.d("TagHarsh", "BaseFragment::presentFragment2 - " + this.getClass().getSimpleName() + " -> " + fragment.getClass().getSimpleName());
         return allowPresentFragment() && parentLayout != null && parentLayout.presentFragment(fragment, removeLast);
     }
 
     public boolean presentFragment(BaseFragment fragment, boolean removeLast, boolean forceWithoutAnimation) {
+        Log.d("TagHarsh", "BaseFragment::presentFragment3 - " + this.getClass().getSimpleName() + " -> " + fragment.getClass().getSimpleName());
         return allowPresentFragment() && parentLayout != null && parentLayout.presentFragment(fragment, removeLast, forceWithoutAnimation, true, false, null);
     }
 
     public boolean presentFragment(INavigationLayout.NavigationParams params) {
+        Log.d("TagHarsh", "BaseFragment::presentFragment4 - "  + this.getClass().getSimpleName() + " -> " + params.fragment.getClass().getSimpleName());
         return allowPresentFragment() && parentLayout != null && parentLayout.presentFragment(params);
     }
 
@@ -862,7 +867,7 @@ public abstract class BaseFragment {
         return getAccountInstance().getLocationController();
     }
 
-    protected NotificationsController getNotificationsController() {
+    public NotificationsController getNotificationsController() {
         return getAccountInstance().getNotificationsController();
     }
 
