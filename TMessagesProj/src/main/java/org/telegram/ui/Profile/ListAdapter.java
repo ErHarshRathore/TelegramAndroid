@@ -83,7 +83,6 @@ import org.telegram.ui.Components.Premium.ProfilePremiumCell;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.FragmentUsernameBottomSheet;
-import org.telegram.ui.Profile.ProfileActivity;
 import org.telegram.ui.Stars.BotStarsController;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
@@ -128,7 +127,8 @@ class ListAdapter extends RecyclerListView.SelectionAdapter {
             VIEW_TYPE_COLORFUL_TEXT = 27;
 
     private final ProfileActivity parent;
-    private Context mContext;
+    private final HashMap<TLRPC.TL_username, ClickableSpan> usernameSpans = new HashMap<TLRPC.TL_username, ClickableSpan>();
+    private final Context mContext;
 
     public ListAdapter(ProfileActivity parent) {
         this.parent = parent;
@@ -598,7 +598,7 @@ class ListAdapter extends RecyclerListView.SelectionAdapter {
                     detailCell.setContentDescriptionValueFirst(true);
                 }
                 if (containsGift) {
-                    Drawable drawable = ContextCompat.getDrawable(mContext, R.drawable.msg_input_gift);
+                    Drawable drawable = ContextCompat.getDrawable(detailCell.getContext(), R.drawable.msg_input_gift);
                     drawable.setColorFilter(new PorterDuffColorFilter(parent.dontApplyPeerColor(parent.getThemedColor(Theme.key_switch2TrackChecked), false), PorterDuff.Mode.MULTIPLY));
                     if (UserObject.areGiftsDisabled(parent.getUserInfo())) {
                         detailCell.setImage(null);
@@ -608,7 +608,7 @@ class ListAdapter extends RecyclerListView.SelectionAdapter {
                         detailCell.setImageClickListener(parent::onTextDetailCellImageClicked);
                     }
                 } else if (containsQr) {
-                    Drawable drawable = ContextCompat.getDrawable(mContext, R.drawable.msg_qr_mini);
+                    Drawable drawable = ContextCompat.getDrawable(detailCell.getContext(), R.drawable.msg_qr_mini);
                     drawable.setColorFilter(new PorterDuffColorFilter(parent.dontApplyPeerColor(parent.getThemedColor(Theme.key_switch2TrackChecked), false), PorterDuff.Mode.MULTIPLY));
                     detailCell.setImage(drawable, LocaleController.getString(R.string.GetQRCode));
                     detailCell.setImageClickListener(parent::onTextDetailCellImageClicked);
@@ -825,7 +825,12 @@ class ListAdapter extends RecyclerListView.SelectionAdapter {
                 } else if (position == parent.starsRow) {
                     StarsController c = StarsController.getInstance(parent.getCurrentAccount());
                     long balance = c.getBalance().amount;
-                    textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.MenuTelegramStars), c.balanceAvailable() && balance > 0 ? LocaleController.formatNumber((int) balance, ',') : "", new AnimatedEmojiDrawable.WrapSizeDrawable(PremiumGradient.getInstance().goldenStarMenuDrawable, dp(24), dp(24)), true);
+                    textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.MenuTelegramStars), c.balanceAvailable() && balance > 0 ? StarsIntroActivity.formatStarsAmount(c.getBalance(), 0.85f, ' ') : "", new AnimatedEmojiDrawable.WrapSizeDrawable(PremiumGradient.getInstance().goldenStarMenuDrawable, dp(24), dp(24)), true);
+                    textCell.setImageLeft(23);
+                } else if (position == parent.tonRow) {
+                    StarsController c = StarsController.getTonInstance(parent.getCurrentAccount());
+                    long balance = c.getBalance().amount;
+                    textCell.setTextAndValueAndIcon(getString(R.string.MyTON), c.balanceAvailable() && balance > 0 ? StarsIntroActivity.formatStarsAmount(c.getBalance(), 0.85f, ' ') : "", R.drawable.menu_my_ton, true);
                     textCell.setImageLeft(23);
                 } else if (position == parent.businessRow) {
                     textCell.setTextAndIcon(LocaleController.getString(R.string.TelegramBusiness), R.drawable.menu_shop, true);
@@ -1131,8 +1136,6 @@ class ListAdapter extends RecyclerListView.SelectionAdapter {
         }
     }
 
-    private final HashMap<TLRPC.TL_username, ClickableSpan> usernameSpans = new HashMap<TLRPC.TL_username, ClickableSpan>();
-
     public ClickableSpan makeUsernameLinkSpan(TLRPC.TL_username usernameObj) {
         ClickableSpan span = usernameSpans.get(usernameObj);
         if (span != null) return span;
@@ -1205,7 +1208,7 @@ class ListAdapter extends RecyclerListView.SelectionAdapter {
                     position == parent.clearLogsRow || position == parent.switchBackendRow || position == parent.setAvatarRow ||
                     position == parent.addToGroupButtonRow || position == parent.premiumRow || position == parent.premiumGiftingRow ||
                     position == parent.businessRow || position == parent.liteModeRow || position == parent.birthdayRow || position == parent.channelRow ||
-                    position == parent.starsRow;
+                    position == parent.starsRow || position == parent.tonRow;
         }
         if (holder.itemView instanceof UserCell) {
             UserCell userCell = (UserCell) holder.itemView;

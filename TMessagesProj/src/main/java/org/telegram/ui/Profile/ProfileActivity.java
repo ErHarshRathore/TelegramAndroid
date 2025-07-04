@@ -46,17 +46,14 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -70,7 +67,6 @@ import android.util.SparseIntArray;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
-import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -127,7 +123,6 @@ import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.LanguageDetector;
-import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaController;
 import org.telegram.messenger.MediaDataController;
@@ -145,7 +140,6 @@ import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.ConnectionsManager;
-import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
@@ -168,13 +162,10 @@ import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.ActionIntroActivity;
-import org.telegram.ui.ArchivedStickersActivity;
-import org.telegram.ui.ArticleViewer;
 import org.telegram.ui.AutoDeleteMessagesActivity;
 import org.telegram.ui.BasePermissionsActivity;
 import org.telegram.ui.Business.OpeningHoursActivity;
 import org.telegram.ui.Business.ProfileHoursCell;
-import org.telegram.ui.CacheControlActivity;
 import org.telegram.ui.Cells.AboutLinkCell;
 import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Cells.DrawerProfileCell;
@@ -189,8 +180,6 @@ import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextDetailCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.UserCell;
-import org.telegram.ui.ChangeBioActivity;
-import org.telegram.ui.ChangeNameActivity;
 import org.telegram.ui.ChangeUsernameActivity;
 import org.telegram.ui.ChannelAdminLogActivity;
 import org.telegram.ui.ChatActivity;
@@ -255,9 +244,7 @@ import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.VectorAvatarThumbDrawable;
 import org.telegram.ui.Components.voip.VoIPHelper;
 import org.telegram.ui.ContactAddActivity;
-import org.telegram.ui.DataAutoDownloadActivity;
 import org.telegram.ui.DataSettingsActivity;
-import org.telegram.ui.DataUsage2Activity;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.FiltersSetupActivity;
 import org.telegram.ui.FragmentUsernameBottomSheet;
@@ -268,24 +255,18 @@ import org.telegram.ui.LanguageSelectActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.LiteModeSettingsActivity;
 import org.telegram.ui.LocationActivity;
-import org.telegram.ui.LoginActivity;
 import org.telegram.ui.LogoutActivity;
 import org.telegram.ui.MemberRequestsActivity;
-import org.telegram.ui.NotificationsCustomSettingsActivity;
 import org.telegram.ui.NotificationsSettingsActivity;
-import org.telegram.ui.PasscodeActivity;
 import org.telegram.ui.PeerColorActivity;
 import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.PinchToZoomHelper;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.PrivacyControlActivity;
 import org.telegram.ui.PrivacySettingsActivity;
-import org.telegram.ui.PrivacyUsersActivity;
 import org.telegram.ui.ProfileBirthdayEffect;
 import org.telegram.ui.ProfileNotificationsActivity;
-import org.telegram.ui.ProxyListActivity;
 import org.telegram.ui.QrActivity;
-import org.telegram.ui.ReactionsDoubleTapManageActivity;
 import org.telegram.ui.ReportBottomSheet;
 import org.telegram.ui.RestrictedLanguagesSelectActivity;
 import org.telegram.ui.SelectAnimatedEmojiDialog;
@@ -305,13 +286,12 @@ import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.Stories.recorder.DualCameraView;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
+import org.telegram.ui.TON.TONIntroActivity;
 import org.telegram.ui.ThemeActivity;
 import org.telegram.ui.TopicCreateFragment;
 import org.telegram.ui.TopicsFragment;
 import org.telegram.ui.TopicsNotifySettingsFragments;
-import org.telegram.ui.TwoStepVerificationActivity;
 import org.telegram.ui.UserInfoActivity;
-import org.telegram.ui.WallpapersListActivity;
 import org.telegram.ui.bots.AffiliateProgramFragment;
 import org.telegram.ui.bots.BotBiometry;
 import org.telegram.ui.bots.BotDownloads;
@@ -326,13 +306,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -342,207 +320,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class ProfileActivity extends BaseFragment implements IProfileActivity, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate {
-    private final static int PHONE_OPTION_CALL = 0,
-        PHONE_OPTION_COPY = 1,
-        PHONE_OPTION_TELEGRAM_CALL = 2,
-        PHONE_OPTION_TELEGRAM_VIDEO_CALL = 3;
-
-    private RecyclerListView listView;
-    private RecyclerListView searchListView;
-    LinearLayoutManager layoutManager;
-    ListAdapter listAdapter;
-    private SearchAdapter searchAdapter;
-    private SimpleTextView[] nameTextView = new SimpleTextView[2];
-    private String nameTextViewRightDrawableContentDescription = null;
-    private String nameTextViewRightDrawable2ContentDescription = null;
-    private SimpleTextView[] onlineTextView = new SimpleTextView[4];
-    private AudioPlayerAlert.ClippingTextViewSwitcher mediaCounterTextView;
-    private RLottieImageView writeButton;
-    private AnimatorSet writeButtonAnimation;
-    private AnimatorSet qrItemAnimation;
-    private Drawable lockIconDrawable;
-    private final Drawable[] verifiedDrawable = new Drawable[2];
-    private final Drawable[] premiumStarDrawable = new Drawable[2];
-    private Long emojiStatusGiftId;
-    private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[] emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[2];
-    private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[] botVerificationDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[2];
-    private final Drawable[] verifiedCheckDrawable = new Drawable[2];
-    private final CrossfadeDrawable[] verifiedCrossfadeDrawable = new CrossfadeDrawable[2];
-    private final CrossfadeDrawable[] premiumCrossfadeDrawable = new CrossfadeDrawable[2];
-    private ScamDrawable scamDrawable;
-    private UndoView undoView;
-    OverlaysView overlaysView;
-    public SharedMediaLayout sharedMediaLayout;
-    StickerEmptyView emptyView;
-    boolean sharedMediaLayoutAttached;
-    private SharedMediaLayout.SharedMediaPreloader sharedMediaPreloader;
-    private boolean preloadedChannelEmojiStatuses;
-
-    private View blurredView;
-
-    private RLottieDrawable cameraDrawable;
-    RLottieDrawable cellCameraDrawable;
-
-    private HintView fwdRestrictedHint;
-    private FrameLayout avatarContainer;
-    private FrameLayout avatarContainer2;
-    private DrawerProfileCell.AnimatedStatusView animatedStatusView;
-    private org.telegram.ui.ProfileActivity.AvatarImageView avatarImage;
-    private View avatarOverlay;
-    private AnimatorSet avatarAnimation;
-    private RadialProgressView avatarProgressView;
-    private ImageView timeItem;
-    private ImageView starBgItem, starFgItem;
-    private TimerDrawable timerDrawable;
-    ProfileGalleryView avatarsViewPager;
-    private PagerIndicatorView avatarsViewPagerIndicatorView;
-    private AvatarDrawable avatarDrawable;
-    ImageUpdater imageUpdater;
-    private int avatarColor;
-    TimerDrawable autoDeleteItemDrawable;
-    private ProfileStoriesView storyView;
-    public ProfileGiftsView giftsView;
-
-    private View scrimView = null;
-    private Paint scrimPaint = new Paint(Paint.ANTI_ALIAS_FLAG) {
-        @Override
-        public void setAlpha(int a) {
-            super.setAlpha(a);
-            fragmentView.invalidate();
-        }
-    };
-    private Paint actionBarBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private ActionBarPopupWindow scrimPopupWindow;
-    Theme.ResourcesProvider resourcesProvider;
-
-    int overlayCountVisible;
-
-    private ImageLocation prevLoadedImageLocation;
-
-    private int lastMeasuredContentWidth;
-    private int lastMeasuredContentHeight;
-    private int listContentHeight;
-    private boolean openingAvatar;
-    private boolean fragmentViewAttached;
-
-    private boolean doNotSetForeground;
-
-    private boolean[] isOnline = new boolean[1];
-
-    boolean callItemVisible;
-    boolean videoCallItemVisible;
-    boolean editItemVisible;
-    private ActionBarMenuItem animatingItem;
-    ActionBarMenuItem callItem;
-    ActionBarMenuItem videoCallItem;
-    ActionBarMenuItem editItem;
-    ActionBarMenuItem otherItem;
-    ActionBarMenuItem searchItem;
-    private ActionBarMenuSubItem editColorItem;
-    private ActionBarMenuSubItem linkItem;
-    private ActionBarMenuSubItem setUsernameItem;
-    private ImageView ttlIconView;
-    ActionBarMenuItem qrItem;
-    private ActionBarMenuSubItem autoDeleteItem;
-    AutoDeletePopupWrapper autoDeletePopupWrapper;
-    protected float headerShadowAlpha = 1.0f;
-    int actionBarBackgroundColor;
-    private TopView topView;
-    long userId;
-    long chatId;
-    private long topicId;
-    public boolean saved;
-    private long dialogId;
-    private boolean creatingChat;
-    private boolean userBlocked;
-    private boolean reportSpam;
-    private long mergeDialogId;
-    boolean expandPhoto;
-    private boolean needSendMessage;
-    private boolean hasVoiceChatItem;
-    boolean isTopic;
-    private boolean openSimilar;
-    public boolean myProfile;
-    public boolean openGifts;
-    private boolean openedGifts;
-    public boolean openCommonChats;
-
-    private boolean scrolling;
-
-    private boolean canSearchMembers;
-
-    private boolean loadingUsers;
-    private LongSparseArray<TLRPC.ChatParticipant> participantsMap = new LongSparseArray<>();
-    private boolean usersEndReached;
-
-    private long banFromGroup;
-    private boolean openAnimationInProgress;
-    private boolean transitionAnimationInProress;
-    private boolean recreateMenuAfterAnimation;
-    int playProfileAnimation;
-    private boolean needTimerImage;
-    private boolean needStarImage;
-    private boolean allowProfileAnimation = true;
-    private boolean disableProfileAnimation = false;
-    float extraHeight;
-    private float initialAnimationExtraHeight;
-    private float avatarAnimationProgress;
-
-    int searchTransitionOffset;
-    private float searchTransitionProgress;
-    private Animator searchViewTransition;
-    private boolean searchMode;
-
-    private FlagSecureReason flagSecure;
-
-    private HashMap<Integer, Integer> positionToOffset = new HashMap<>();
-
-    private float avatarX;
-    private float avatarY;
-    private float avatarScale;
-    private float nameX;
-    private float nameY;
-    private float onlineX;
-    private float onlineY;
-    private float expandProgress;
-    private float listViewVelocityY;
-    private ValueAnimator expandAnimator;
-    private float currentExpandAnimatorValue;
-    private float currentExpanAnimatorFracture;
-    private float[] expandAnimatorValues = new float[]{0f, 1f};
-    private boolean isInLandscapeMode;
-    private boolean allowPullingDown;
-    boolean isPulledDown;
-
-    private Paint whitePaint = new Paint();
-
-    boolean isBot;
-    BotLocation botLocation;
-    BotBiometry botBiometry;
-
-    TLRPC.ChatFull chatInfo;
-    private TLRPC.UserFull userInfo;
-
-    public ProfileChannelCell.ChannelMessageFetcher profileChannelMessageFetcher;
-    public boolean createdBirthdayFetcher;
-    public ProfileBirthdayEffect.BirthdayEffectFetcher birthdayFetcher;
-
-    CharSequence currentBio;
-
-    private long selectedUser;
-    private int onlineCount = -1;
-    ArrayList<Integer> sortedUsers;
-
-    private TLRPC.EncryptedChat currentEncryptedChat;
-    private TLRPC.Chat currentChat;
-    private TL_bots.BotInfo botInfo;
-    private TLRPC.ChannelParticipant currentChannelParticipant;
-    private TL_account.TL_password currentPassword;
-
-    private TLRPC.FileLocation avatar;
-    private TLRPC.FileLocation avatarBig;
-    private ImageLocation uploadingImageLocation;
-
+    // Static Fields
+    final static int add_photo = 36;
+    final static int set_as_main = 33;
+    private final static int PHONE_OPTION_CALL = 0;
+    private final static int PHONE_OPTION_COPY = 1;
+    private final static int PHONE_OPTION_TELEGRAM_CALL = 2;
+    private final static int PHONE_OPTION_TELEGRAM_VIDEO_CALL = 3;
     private final static int add_contact = 1;
     private final static int block_contact = 2;
     private final static int share_contact = 3;
@@ -563,14 +347,11 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     private final static int view_discussion = 22;
     private final static int delete_topic = 23;
     private final static int report = 24;
-
     private final static int edit_info = 30;
     private final static int logout = 31;
     private final static int search_button = 32;
-    final static int set_as_main = 33;
     private final static int edit_avatar = 34;
     private final static int delete_avatar = 35;
-    final static int add_photo = 36;
     private final static int qr_button = 37;
     private final static int gift_premium = 38;
     private final static int channel_stories = 39;
@@ -580,164 +361,266 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     private final static int set_username = 43;
     private final static int bot_privacy = 44;
 
-    private Rect rect = new Rect();
-
-    TextCell setAvatarCell;
-
-    int rowCount;
-
-    int setAvatarRow;
-    int setAvatarSectionRow;
-    int channelRow;
-    int channelDividerRow;
-    int numberSectionRow;
-    int numberRow;
-    public int birthdayRow;
-    int setUsernameRow;
-    int bioRow;
-    int phoneSuggestionSectionRow;
-    int graceSuggestionRow;
-    int graceSuggestionSectionRow;
-    int phoneSuggestionRow;
-    int passwordSuggestionSectionRow;
-    int passwordSuggestionRow;
-    int settingsSectionRow;
-    int settingsSectionRow2;
-    int notificationRow;
-    int languageRow;
-    int privacyRow;
-    int dataRow;
-    int chatRow;
-    int filtersRow;
-    int liteModeRow;
-    int stickersRow;
-    int devicesRow;
-    int devicesSectionRow;
-    int helpHeaderRow;
-    int questionRow;
-    int faqRow;
-    int policyRow;
-    int helpSectionCell;
-    int debugHeaderRow;
-    int sendLogsRow;
-    int sendLastLogsRow;
-    int clearLogsRow;
-    int switchBackendRow;
-    int versionRow;
-    int emptyRow;
-    int bottomPaddingRow;
-    int infoHeaderRow;
-    int phoneRow;
-    int locationRow;
-    int userInfoRow;
-    int channelInfoRow;
-    int usernameRow;
-    int notificationsDividerRow;
-    int notificationsRow;
-    int bizHoursRow;
-    int bizLocationRow;
-    int notificationsSimpleRow;
-    private int infoStartRow, infoEndRow;
-    int infoSectionRow;
-    int affiliateRow;
-    int infoAffiliateRow;
-    int sendMessageRow;
-    int reportRow;
-    int reportReactionRow;
-    int reportDividerRow;
+    // Instance Fields
+    final AccelerateDecelerateInterpolator floatingInterpolator = new AccelerateDecelerateInterpolator();
+    final ArrayList<Integer> visibleSortedUsers = new ArrayList<>();
+    final ArrayList<TLRPC.ChatParticipant> visibleChatParticipants = new ArrayList<>();
+    final boolean[] isOnline = new boolean[1];
+    final CrossfadeDrawable[] premiumCrossfadeDrawable = new CrossfadeDrawable[2];
+    final CrossfadeDrawable[] verifiedCrossfadeDrawable = new CrossfadeDrawable[2];
+    final Drawable[] premiumStarDrawable = new Drawable[2];
+    final Drawable[] verifiedCheckDrawable = new Drawable[2];
+    final Drawable[] verifiedDrawable = new Drawable[2];
+    final float[] expandAnimatorValues = new float[]{0f, 1f};
+    final HashMap<Integer, Integer> positionToOffset = new HashMap<>();
+    final Paint actionBarBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    final Paint scrimPaint = new Paint(Paint.ANTI_ALIAS_FLAG) {
+        @Override
+        public void setAlpha(int a) {
+            super.setAlpha(a);
+            fragmentView.invalidate();
+        }
+    };
+    final Paint whitePaint = new Paint();
+    final Rect rect = new Rect();
+    final SimpleTextView[] nameTextView = new SimpleTextView[2];
+    final SimpleTextView[] onlineTextView = new SimpleTextView[4];
+    final SparseIntArray adaptedColors = new SparseIntArray();
+    private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[] botVerificationDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[2];
+    private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[] emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[2];
+    // Public Fields
+    public boolean saved;
+    public SharedMediaLayout sharedMediaLayout;
+    // Package-Private Fields
+    boolean allowProfileAnimation = true;
+    boolean allowPullingDown;
+    boolean canSearchMembers;
+    boolean callItemVisible;
+    boolean createdBirthdayFetcher;
+    boolean creatingChat;
+    boolean disableProfileAnimation = false;
+    boolean doNotSetForeground;
+    boolean editItemVisible;
+    boolean expandPhoto;
+    boolean firstLayout = true;
+    boolean floatingHidden;
+    boolean fragmentViewAttached;
+    boolean hasVoiceChatItem;
+    boolean hoursExpanded;
+    boolean hoursShownMine;
+    boolean invalidateScroll = true;
+    boolean isBot;
+    boolean isFragmentOpened;
+    boolean isFragmentPhoneNumber;
+    boolean isInLandscapeMode;
+    boolean isPulledDown;
+    boolean isQrItemVisible = true;
+    boolean isTopic;
+    boolean loadingUsers;
+    boolean myProfile;
+    boolean needSendMessage;
+    boolean needStarImage;
+    boolean needTimerImage;
+    boolean openAnimationInProgress;
+    boolean openCommonChats;
+    boolean openedGifts;
+    boolean openGifts;
+    boolean openingAvatar;
+    boolean openSimilar;
+    boolean preloadedChannelEmojiStatuses;
+    boolean profileTransitionInProgress;
+    boolean recreateMenuAfterAnimation;
+    boolean reportSpam;
+    boolean savedScrollToSharedMedia;
+    boolean scrolling;
+    boolean searchMode;
+    boolean sharedMediaLayoutAttached;
+    boolean showAddToContacts;
+    boolean showBoostsAlert;
+    boolean transitionAnimationInProress;
+    boolean userBlocked;
+    boolean usersEndReached;
+    boolean videoCallItemVisible;
+    float avatarAnimationProgress;
+    float avatarScale;
+    float avatarX;
+    float avatarY;
+    float currentExpanAnimatorFracture;
+    float currentExpandAnimatorValue;
+    float expandProgress;
+    float extraHeight;
+    float floatingButtonHideProgress;
+    float headerShadowAlpha = 1.0f;
+    float initialAnimationExtraHeight;
+    float listViewVelocityY;
+    float mediaHeaderAnimationProgress;
+    float nameX;
+    float nameY;
+    float onlineX;
+    float onlineY;
+    float photoDescriptionProgress = -1;
+    float searchTransitionProgress;
+    int actionBarAnimationColorFrom = 0;
+    int actionBarBackgroundColor;
+    int addMemberRow;
     int addToContactsRow;
     int addToGroupButtonRow;
     int addToGroupInfoRow;
-    int premiumRow;
-    int starsRow;
-    int businessRow;
-    int premiumGiftingRow;
-    int premiumSectionsRow;
+    int administratorsRow;
+    int affiliateRow;
+    int avatarColor;
+    int avatarUploadingRequest;
+    int balanceDividerRow;
+    int bioRow;
+    int birthdayRow;
+    int bizHoursRow;
+    int bizLocationRow;
+    int blockedUsersRow;
     int botAppRow;
-    int botPermissionsHeader;
-    @Keep
-    int botPermissionLocation;
-    @Keep
-    int botPermissionEmojiStatus;
-    private int botPermissionEmojiStatusReqId;
     @Keep
     int botPermissionBiometry;
+    @Keep
+    int botPermissionEmojiStatus;
+    int botPermissionEmojiStatusReqId;
+    @Keep
+    int botPermissionLocation;
     int botPermissionsDivider;
-
-    int settingsTimerRow;
-    int settingsKeyRow;
-    int secretSettingsSectionRow;
-
-    int membersHeaderRow;
-    int membersStartRow;
-    int membersEndRow;
-    int addMemberRow;
-    int subscribersRow;
-    int subscribersRequestsRow;
-    int administratorsRow;
-    int settingsRow;
+    int botPermissionsHeader;
     int botStarsBalanceRow;
     int botTonBalanceRow;
+    int bottomPaddingRow;
+    int businessRow;
     int channelBalanceRow;
     int channelBalanceSectionRow;
-    int balanceDividerRow;
-    int blockedUsersRow;
-    int membersSectionRow;
-
-    int sharedMediaRow;
-
-    int unblockRow;
+    int channelDividerRow;
+    int channelInfoRow;
+    int channelRow;
+    int chatRow;
+    int clearLogsRow;
+    int dataRow;
+    int debugHeaderRow;
+    int devicesSectionRow;
+    int devicesRow;
+    int emptyRow;
+    int faqRow;
+    int filtersRow;
+    int graceSuggestionRow;
+    int graceSuggestionSectionRow;
+    int helpHeaderRow;
+    int helpSectionCell;
+    int infoAffiliateRow;
+    int infoHeaderRow;
+    int infoSectionRow;
+    int infoStartRow;
+    int infoEndRow;
     int joinRow;
+    int languageRow;
+    int lastMeasuredContentHeight;
+    int lastMeasuredContentWidth;
     int lastSectionRow;
-
-    boolean hoursExpanded;
-    boolean hoursShownMine;
-
-    private int transitionIndex;
-    final ArrayList<TLRPC.ChatParticipant> visibleChatParticipants = new ArrayList<>();
-    final ArrayList<Integer> visibleSortedUsers = new ArrayList<>();
-    private int usersForceShowingIn = 0;
-
-    private boolean firstLayout = true;
-    private boolean invalidateScroll = true;
-    private boolean isQrItemVisible = true;
-
-    PinchToZoomHelper pinchToZoomHelper;
-
-    private View transitionOnlineText;
-    private int actionBarAnimationColorFrom = 0;
-    private int navigationBarAnimationColorFrom = 0;
-    private int reportReactionMessageId = 0;
+    int listContentHeight;
+    int liteModeRow;
+    int locationRow;
+    int membersEndRow;
+    int membersHeaderRow;
+    int membersSectionRow;
+    int membersStartRow;
+    int navigationBarAnimationColorFrom = 0;
+    int notificationRow;
+    int notificationsDividerRow;
+    int notificationsRow;
+    int notificationsSimpleRow;
+    int numberRow;
+    int numberSectionRow;
+    int onlineCount = -1;
+    int overlayCountVisible;
+    int passwordSuggestionRow;
+    int passwordSuggestionSectionRow;
+    int phoneRow;
+    int phoneSuggestionRow;
+    int phoneSuggestionSectionRow;
+    int playProfileAnimation;
+    int policyRow;
+    int premiumGiftingRow;
+    int premiumRow;
+    int premiumSectionsRow;
+    int privacyRow;
+    int questionRow;
+    int reportDividerRow;
+    int reportReactionMessageId = 0;
+    int reportRow;
+    int reportReactionRow;
+    int rowCount;
+    int savedScrollOffset;
+    int savedScrollPosition = -1;
+    int searchTransitionOffset;
+    int secretSettingsSectionRow;
+    int sendLastLogsRow;
+    int sendLogsRow;
+    int sendMessageRow;
+    int setAvatarRow;
+    int setAvatarSectionRow;
+    int settingsKeyRow;
+    int settingsRow;
+    int settingsSectionRow;
+    int settingsSectionRow2;
+    int settingsTimerRow;
+    int setUsernameRow;
+    int sharedMediaRow;
+    int starsRow;
+    int stickersRow;
+    int subscribersRequestsRow;
+    int subscribersRow;
+    int switchBackendRow;
+    int tonRow;
+    int transitionIndex;
+    int unblockRow;
+    int userInfoRow;
+    int usernameRow;
+    int usersForceShowingIn = 0;
+    int versionRow;
+    long banFromGroup;
+    long chatId;
+    long dialogId;
+    long mergeDialogId;
     long reportReactionFromDialogId = 0;
-
-    boolean isFragmentPhoneNumber;
-
-    private boolean showAddToContacts;
-    String vcardPhone;
-    private String vcardFirstName;
-    private String vcardLastName;
-
+    long selectedUser;
+    long topicId;
+    long userId;
+    org.telegram.ui.ProfileActivity.AvatarImageView avatarImage;
+    AboutLinkCell aboutLinkCell;
+    ActionBarMenuItem animatingItem;
+    ActionBarMenuItem callItem;
+    ActionBarMenuItem editItem;
+    ActionBarMenuItem otherItem;
+    ActionBarMenuItem qrItem;
+    ActionBarMenuItem searchItem;
+    ActionBarMenuItem videoCallItem;
+    ActionBarMenuSubItem autoDeleteItem;
+    ActionBarMenuSubItem editColorItem;
+    ActionBarMenuSubItem linkItem;
+    ActionBarMenuSubItem setUsernameItem;
+    ActionBarPopupWindow scrimPopupWindow;
+    ArrayList<Integer> sortedUsers;
+    AutoDeletePopupWrapper autoDeletePopupWrapper;
     BaseFragment previousTransitionMainFragment;
-    ChatActivityInterface previousTransitionFragment;
-
-    HashSet<Integer> notificationsExceptionTopics = new HashSet<>();
-
+    BotBiometry botBiometry;
+    BotLocation botLocation;
     CharacterStyle loadingSpan;
-
-    private final Property<ProfileActivity, Float> HEADER_SHADOW = new AnimationProperties.FloatProperty<ProfileActivity>("headerShadow") {
-        @Override
-        public void setValue(ProfileActivity object, float value) {
-            headerShadowAlpha = value;
-            topView.invalidate();
-        }
-
-        @Override
-        public Float get(ProfileActivity object) {
-            return headerShadowAlpha;
-        }
-    };
-
-    private PhotoViewer.PhotoViewerProvider provider = new PhotoViewer.EmptyPhotoViewerProvider() {
+    CharSequence currentBio;
+    ChatActivityInterface previousTransitionFragment;
+    DrawerProfileCell.AnimatedStatusView animatedStatusView;
+    FlagSecureReason flagSecure;
+    FrameLayout avatarContainer;
+    FrameLayout avatarContainer2;
+    FrameLayout floatingButtonContainer;
+    HashSet<Integer> notificationsExceptionTopics = new HashSet<>();
+    HintView fwdRestrictedHint;
+    ImageLocation prevLoadedImageLocation;
+    ImageLocation uploadingImageLocation;
+    ImageUpdater imageUpdater;
+    // Private Instance Fields
+    private final PhotoViewer.PhotoViewerProvider provider = new PhotoViewer.EmptyPhotoViewerProvider() {
 
         @Override
         public PhotoViewer.PlaceProviderObject getPlaceForPhoto(MessageObject messageObject, TLRPC.FileLocation fileLocation, int index, boolean needPreview, boolean closing) {
@@ -791,21 +674,200 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             imageUpdater.openPhotoForEdit(file, thumb, 0, isVideo);
         }
     };
-    private boolean fragmentOpened;
+    ImageView starBgItem;
+    ImageView starFgItem;
+    ImageView timeItem;
+    ImageView ttlIconView;
+    LinearLayoutManager layoutManager;
+    ListAdapter listAdapter;
+    Long emojiStatusGiftId;
     NestedFrameLayout contentView;
-    private float titleAnimationsYDiff;
+    OverlaysView overlaysView;
+    PagerIndicatorView avatarsViewPagerIndicatorView;
+    PinchToZoomHelper pinchToZoomHelper;
+    ProfileBirthdayEffect.BirthdayEffectFetcher birthdayFetcher;
+    ProfileChannelCell.ChannelMessageFetcher profileChannelMessageFetcher;
+    ProfileGalleryView avatarsViewPager;
+    ProfileGiftsView giftsView;
+    RLottieDrawable cellCameraDrawable;
+    RLottieImageView floatingButton;
+    String vcardFirstName;
+    String vcardLastName;
+    String vcardPhone;
+    StickerEmptyView emptyView;
+    TextCell setAvatarCell;
+    Theme.ResourcesProvider resourcesProvider;
+    TimerDrawable autoDeleteItemDrawable;
+    TimerDrawable timerDrawable;
+    TLRPC.ChatFull chatInfo;
+    // Private Fields
+    private boolean fragmentOpened;
+    private boolean fullyVisible;
+    private boolean hasCustomPhoto;
+    private boolean hasFallbackPhoto;
+    private boolean loadingBoostsStats;
+    private boolean mediaHeaderVisible;
+    private boolean waitCanSendStoryRequest;
     private float customAvatarProgress;
     private float customPhotoOffset;
-    private boolean hasFallbackPhoto;
-    private boolean hasCustomPhoto;
-    private ImageReceiver fallbackImage;
-    private boolean loadingBoostsStats;
-    private boolean waitCanSendStoryRequest;
+    private float lastEmojiStatusProgress;
+    private float titleAnimationsYDiff;
+    private int collectibleHintBackgroundColor;
+    private Animator searchViewTransition;
+    private AnimatorSet avatarAnimation;
+    private AnimatorSet headerAnimatorSet;
+    private AnimatorSet headerShadowAnimatorSet;
+    private AnimatorSet scrimAnimatorSet = null;
+    private AnimatorSet qrItemAnimation;
+    private AnimatorSet writeButtonAnimation;
+    private AudioPlayerAlert.ClippingTextViewSwitcher mediaCounterTextView;
+    private AvatarDrawable avatarDrawable;
+    private Boolean collectibleHintVisible;
+    private ButtonWithCounterView[] bottomButton;
+    private Drawable lockIconDrawable;
     private FrameLayout bottomButtonsContainer;
     private FrameLayout[] bottomButtonContainer;
-    private SpannableStringBuilder bottomButtonPostText;
-    private ButtonWithCounterView[] bottomButton;
+    private HintView2 collectibleHint;
+    private ImageReceiver fallbackImage;
+    private LongSparseArray<TLRPC.ChatParticipant> participantsMap = new LongSparseArray<>();
+    private MessagesController.PeerColor peerColor;
+    private ProfileBirthdayEffect birthdayEffect;
+    private ProfileStoriesView storyView;
+    private RadialProgressView avatarProgressView;
+    private RecyclerListView listView;
+    private RecyclerListView searchListView;
     private Runnable applyBulletin;
+    private RLottieDrawable cameraDrawable;
+    private RLottieImageView writeButton;
+    private ScamDrawable scamDrawable;
+    private SearchAdapter searchAdapter;
+    private SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow selectAnimatedEmojiDialog;
+    private SharedMediaLayout.SharedMediaPreloader sharedMediaPreloader;
+    private ShowDrawable showStatusButton;
+    private SpannableStringBuilder bottomButtonPostText;
+    private String nameTextViewRightDrawable2ContentDescription = null;
+    private String nameTextViewRightDrawableContentDescription = null;
+    private TopView topView;
+    final Property<ProfileActivity, Float> HEADER_SHADOW = new AnimationProperties.FloatProperty<ProfileActivity>("headerShadow") {
+        @Override
+        public void setValue(ProfileActivity object, float value) {
+            headerShadowAlpha = value;
+            topView.invalidate();
+        }
+
+        @Override
+        public Float get(ProfileActivity object) {
+            return headerShadowAlpha;
+        }
+    };
+    private final Property<ActionBar, Float> ACTIONBAR_HEADER_PROGRESS = new AnimationProperties.FloatProperty<ActionBar>("avatarAnimationProgress") {
+        @Override
+        public void setValue(ActionBar object, float value) {
+            mediaHeaderAnimationProgress = value;
+            if (storyView != null) {
+                storyView.setActionBarActionMode(value);
+            }
+            if (giftsView != null) {
+                giftsView.setActionBarActionMode(value);
+            }
+            topView.invalidate();
+
+            int color1 = getThemedColor(Theme.key_profile_title);
+            int color2 = getThemedColor(Theme.key_player_actionBarTitle);
+            int c = AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f);
+            nameTextView[1].setTextColor(c);
+            if (lockIconDrawable != null) {
+                lockIconDrawable.setColorFilter(c, PorterDuff.Mode.MULTIPLY);
+            }
+            if (scamDrawable != null) {
+                color1 = getThemedColor(Theme.key_avatar_subtitleInProfileBlue);
+                scamDrawable.setColor(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f));
+            }
+
+            color1 = peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon);
+            color2 = getThemedColor(Theme.key_actionBarActionModeDefaultIcon);
+            actionBar.setItemsColor(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), false);
+
+            color1 = peerColor != null ? Theme.ACTION_BAR_WHITE_SELECTOR_COLOR : peerColor != null ? 0x20ffffff : getThemedColor(Theme.key_avatar_actionBarSelectorBlue);
+            color2 = getThemedColor(Theme.key_actionBarActionModeDefaultSelector);
+            actionBar.setItemsBackgroundColor(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), false);
+
+            topView.invalidate();
+            otherItem.setIconColor(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon));
+            callItem.setIconColor(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon));
+            videoCallItem.setIconColor(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon));
+            editItem.setIconColor(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon));
+
+            if (verifiedDrawable[0] != null) {
+                color1 = getThemedColor(Theme.key_profile_verifiedBackground);
+                color2 = getThemedColor(Theme.key_player_actionBarTitle);
+                verifiedDrawable[0].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
+            }
+            if (verifiedDrawable[1] != null) {
+                color1 = peerColor != null ? Theme.adaptHSV(ColorUtils.blendARGB(peerColor.getColor2(), peerColor.hasColor6(Theme.isCurrentThemeDark()) ? peerColor.getColor5() : peerColor.getColor3(), .4f), +.1f, Theme.isCurrentThemeDark() ? -.1f : -.08f) : getThemedColor(Theme.key_profile_verifiedBackground);
+                color2 = getThemedColor(Theme.key_player_actionBarTitle);
+                verifiedDrawable[1].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
+            }
+
+            if (verifiedCheckDrawable[0] != null) {
+                color1 = getThemedColor(Theme.key_profile_verifiedCheck);
+                color2 = getThemedColor(Theme.key_windowBackgroundWhite);
+                verifiedCheckDrawable[0].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
+            }
+            if (verifiedCheckDrawable[1] != null) {
+                color1 = peerColor != null ? Color.WHITE : dontApplyPeerColor(getThemedColor(Theme.key_profile_verifiedCheck));
+                color2 = getThemedColor(Theme.key_windowBackgroundWhite);
+                verifiedCheckDrawable[1].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
+            }
+
+
+            if (premiumStarDrawable[0] != null) {
+                color1 = getThemedColor(Theme.key_profile_verifiedBackground);
+                color2 = getThemedColor(Theme.key_player_actionBarTitle);
+                premiumStarDrawable[0].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
+            }
+            if (premiumStarDrawable[1] != null) {
+                color1 = dontApplyPeerColor(getThemedColor(Theme.key_profile_verifiedBackground));
+                color2 = dontApplyPeerColor(getThemedColor(Theme.key_player_actionBarTitle));
+                premiumStarDrawable[1].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
+            }
+
+            updateEmojiStatusDrawableColor();
+
+            if (avatarsViewPagerIndicatorView.getSecondaryMenuItem() != null && (videoCallItemVisible || editItemVisible || callItemVisible)) {
+                needLayoutText(Math.min(1f, extraHeight / AndroidUtilities.dp(88f)));
+            }
+        }
+
+        @Override
+        public Float get(ActionBar object) {
+            return mediaHeaderAnimationProgress;
+        }
+    };
+    private TL_account.TL_password currentPassword;
+    private TL_bots.BotInfo botInfo;
+    private TLRPC.ChannelParticipant currentChannelParticipant;
+    private TLRPC.Chat currentChat;
+    private TLRPC.EncryptedChat currentEncryptedChat;
+    private TLRPC.FileLocation avatar;
+    private TLRPC.FileLocation avatarBig;
+    private TLRPC.TL_emojiStatusCollectible collectibleStatus;
+    private TLRPC.UserFull userInfo;
+    private UndoView undoView;
+    private ValueAnimator expandAnimator;
+    private View avatarOverlay;
+    private View blurredView;
+    private View scrimView = null;
+    private View transitionOnlineText;
+
+    public ProfileActivity(Bundle args) {
+        this(args, null);
+    }
+
+    public ProfileActivity(Bundle args, SharedMediaLayout.SharedMediaPreloader preloader) {
+        super(args);
+        sharedMediaPreloader = preloader;
+    }
 
     public static ProfileActivity of(long dialogId) {
         Bundle bundle = new Bundle();
@@ -817,17 +879,123 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return new ProfileActivity(bundle);
     }
 
+    public static void sendLogs(Activity activity, boolean last) {
+        if (activity == null) {
+            return;
+        }
+        AlertDialog progressDialog = new AlertDialog(activity, AlertDialog.ALERT_TYPE_SPINNER);
+        progressDialog.setCanCancel(false);
+        progressDialog.show();
+        Utilities.globalQueue.postRunnable(() -> {
+            try {
+                File dir = AndroidUtilities.getLogsDir();
+                if (dir == null) {
+                    AndroidUtilities.runOnUIThread(progressDialog::dismiss);
+                    return;
+                }
+
+                File zipFile = new File(dir, "logs.zip");
+                if (zipFile.exists()) {
+                    zipFile.delete();
+                }
+
+                ArrayList<File> files = new ArrayList<>();
+
+                File[] logFiles = dir.listFiles();
+                Collections.addAll(files, logFiles);
+
+                File filesDir = ApplicationLoader.getFilesDirFixed();
+                filesDir = new File(filesDir, "malformed_database/");
+                if (filesDir.exists() && filesDir.isDirectory()) {
+                    File[] malformedDatabaseFiles = filesDir.listFiles();
+                    Collections.addAll(files, malformedDatabaseFiles);
+                }
+
+                boolean[] finished = new boolean[1];
+                long currentDate = System.currentTimeMillis();
+
+                BufferedInputStream origin = null;
+                ZipOutputStream out = null;
+                try {
+                    FileOutputStream dest = new FileOutputStream(zipFile);
+                    out = new ZipOutputStream(new BufferedOutputStream(dest));
+                    byte[] data = new byte[1024 * 64];
+
+                    for (int i = 0; i < files.size(); i++) {
+                        File file = files.get(i);
+                        if (!file.getName().contains("cache4") && (last || file.getName().contains("_mtproto")) && (currentDate - file.lastModified()) > 24 * 60 * 60 * 1000) {
+                            continue;
+                        }
+                        if (!file.exists()) {
+                            continue;
+                        }
+                        FileInputStream fi = new FileInputStream(file);
+                        origin = new BufferedInputStream(fi, data.length);
+
+                        ZipEntry entry = new ZipEntry(file.getName());
+                        out.putNextEntry(entry);
+                        int count;
+                        while ((count = origin.read(data, 0, data.length)) != -1) {
+                            out.write(data, 0, count);
+                        }
+                        origin.close();
+                        origin = null;
+                    }
+                    finished[0] = true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (origin != null) {
+                        origin.close();
+                    }
+                    if (out != null) {
+                        out.close();
+                    }
+                }
+
+                AndroidUtilities.runOnUIThread(() -> {
+                    try {
+                        progressDialog.dismiss();
+                    } catch (Exception ignore) {
+
+                    }
+                    if (finished[0]) {
+                        Uri uri;
+                        if (Build.VERSION.SDK_INT >= 24) {
+                            uri = FileProvider.getUriForFile(activity, ApplicationLoader.getApplicationId() + ".provider", zipFile);
+                        } else {
+                            uri = Uri.fromFile(zipFile);
+                        }
+
+                        Intent i = new Intent(Intent.ACTION_SEND);
+                        if (Build.VERSION.SDK_INT >= 24) {
+                            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        }
+                        i.setType("message/rfc822");
+                        i.putExtra(Intent.EXTRA_EMAIL, "");
+                        i.putExtra(Intent.EXTRA_SUBJECT, "Logs from " + LocaleController.getInstance().getFormatterStats().format(System.currentTimeMillis()));
+                        i.putExtra(Intent.EXTRA_STREAM, uri);
+                        if (activity != null) {
+                            try {
+                                activity.startActivityForResult(Intent.createChooser(i, "Select email application."), 500);
+                            } catch (Exception e) {
+                                FileLog.e(e);
+                            }
+                        }
+                    } else {
+                        if (activity != null) {
+                            Toast.makeText(activity, LocaleController.getString(R.string.ErrorOccurred), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public long getTopicId() {
         return topicId;
-    }
-
-    public ProfileActivity(Bundle args) {
-        this(args, null);
-    }
-
-    public ProfileActivity(Bundle args, SharedMediaLayout.SharedMediaPreloader preloader) {
-        super(args);
-        sharedMediaPreloader = preloader;
     }
 
     @Override
@@ -1266,7 +1434,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                 getNotificationCenter().postNotificationName(NotificationCenter.needDeleteDialog, dialogId, user, currentChat, param);
                             }, getResourceProvider());
                         } else {
-                            getMessagesController().unblockPeer(userId, ()-> getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", userId, null, null, null, false, null, null, null, true, 0, null, false)));
+                            getMessagesController().unblockPeer(userId, () -> getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", userId, null, null, null, false, null, null, null, true, 0, null, false)));
                             finishFragment();
                         }
                     }
@@ -1513,7 +1681,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 } else if (id == view_discussion) {
                     openDiscussion();
                 } else if (id == gift_premium) {
-                    if (userInfo != null && UserObject.areGiftsDisabled(userInfo)) {
+                    if (UserObject.areGiftsDisabled(userInfo)) {
                         BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
                         if (lastFragment != null) {
                             BulletinFactory.of(lastFragment).createSimpleBulletin(R.raw.error, AndroidUtilities.replaceTags(LocaleController.formatString(R.string.UserDisallowedGifts, DialogObject.getShortName(getDialogId())))).show();
@@ -1700,7 +1868,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         if (photo == null || avatarsViewPager.getRealPosition() == 0) {
                             TLRPC.Photo nextPhoto = avatarsViewPager.getPhoto(1);
                             if (nextPhoto != null) {
-                                getUserConfig().getCurrentUser().photo =new TLRPC.TL_userProfilePhoto();
+                                getUserConfig().getCurrentUser().photo = new TLRPC.TL_userProfilePhoto();
                                 TLRPC.PhotoSize smallSize = FileLoader.getClosestPhotoSizeWithSize(nextPhoto.sizes, 90);
                                 TLRPC.PhotoSize bigSize = FileLoader.getClosestPhotoSizeWithSize(nextPhoto.sizes, 1000);
                                 if (smallSize != null && bigSize != null) {
@@ -1767,6 +1935,12 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
         fragmentView = new NestedFrameLayout(this) {
 
+            private final ArrayList<View> sortedChildren = new ArrayList<>();
+            private final Comparator<View> viewComparator = (view, view2) -> (int) (view.getY() - view2.getY());
+            private final Paint grayPaint = new Paint();
+            private boolean ignoreLayout;
+            private boolean wasPortrait;
+
             @Override
             public boolean dispatchTouchEvent(MotionEvent ev) {
                 if (pinchToZoomHelper.isInOverlayMode()) {
@@ -1781,15 +1955,10 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 return super.dispatchTouchEvent(ev);
             }
 
-            private boolean ignoreLayout;
-            private Paint grayPaint = new Paint();
-
             @Override
             public boolean hasOverlappingRendering() {
                 return false;
             }
-
-            private boolean wasPortrait;
 
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -2026,7 +2195,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
                 if (searchItem != null && qrItem != null) {
                     float translation = AndroidUtilities.dp(48) * currentExpandAnimatorValue;
-                   // qrItem.setTranslationX(translation);
+                    // qrItem.setTranslationX(translation);
                 }
             }
 
@@ -2046,10 +2215,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 }
                 super.requestLayout();
             }
-
-            private final ArrayList<View> sortedChildren = new ArrayList<>();
-            private final Comparator<View> viewComparator = (view, view2) -> (int) (view.getY() - view2.getY());
-
 
             @Override
             protected void dispatchDraw(Canvas canvas) {
@@ -2271,8 +2436,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                         }
                                         updateAvatarRoundRadius();
                                         return StoryRecorder.SourceView.fromAvatarImage(
-                                            TypeTransformer.transformAvatarImageView(avatarImage),
-                                            ChatObject.isForum(currentChat)
+                                                TypeTransformer.transformAvatarImageView(avatarImage),
+                                                ChatObject.isForum(currentChat)
                                         );
                                     }
                                 })
@@ -2311,7 +2476,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                             storyItem.pinned = pin;
                         }
                         getMessagesController().getStoriesController().updateStoriesInLists(dialogId, storyItems);
-                        final boolean[] undone = new boolean[] { false };
+                        final boolean[] undone = new boolean[]{false};
                         applyBulletin = () -> {
                             getMessagesController().getStoriesController().updateStoriesPinned(dialogId, storyItems, pin, null);
                         };
@@ -2364,14 +2529,17 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             protected int processColor(int color) {
                 return dontApplyPeerColor(color, false);
             }
+
             @Override
             protected void onSelectedTabChanged() {
                 updateSelectedMediaTabText();
             }
+
             @Override
             protected boolean includeSavedDialogs() {
                 return dialogId == getUserConfig().getClientUserId() && !saved;
             }
+
             @Override
             protected boolean isSelf() {
                 return myProfile;
@@ -2432,14 +2600,15 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     int a = getSelectedTab() - SharedMediaLayout.TAB_STORIES;
                     if (a < 0 || a > 1) return;
                     bottomButtonContainer[a]
-                        .animate()
-                        .translationY(show || a == 0 && MessagesController.getInstance(currentAccount).storiesEnabled() ? 0 : dp(72))
-                        .setDuration(320)
-                        .setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT)
-                        .setUpdateListener(anm -> updateBottomButtonY())
-                        .start();
+                            .animate()
+                            .translationY(show || a == 0 && MessagesController.getInstance(currentAccount).storiesEnabled() ? 0 : dp(72))
+                            .setDuration(320)
+                            .setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT)
+                            .setUpdateListener(anm -> updateBottomButtonY())
+                            .start();
                 }
             }
+
             @Override
             protected void onTabProgress(float progress) {
                 super.onTabProgress(progress);
@@ -2470,31 +2639,31 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             @Override
             public void openStoryRecorder() {
                 StoryRecorder.getInstance(getParentActivity(), currentAccount)
-                    .selectedPeerId(getDialogId())
-                    .canChangePeer(false)
-                    .closeToWhenSent(new StoryRecorder.ClosingViewProvider() {
-                        @Override
-                        public void preLayout(long dialogId, Runnable runnable) {
-                            avatarImage.setHasStories(needInsetForStories());
-                            if (dialogId == getDialogId()) {
-                                collapseAvatarInstant();
+                        .selectedPeerId(getDialogId())
+                        .canChangePeer(false)
+                        .closeToWhenSent(new StoryRecorder.ClosingViewProvider() {
+                            @Override
+                            public void preLayout(long dialogId, Runnable runnable) {
+                                avatarImage.setHasStories(needInsetForStories());
+                                if (dialogId == getDialogId()) {
+                                    collapseAvatarInstant();
+                                }
+                                AndroidUtilities.runOnUIThread(runnable, 30);
                             }
-                            AndroidUtilities.runOnUIThread(runnable, 30);
-                        }
 
-                        @Override
-                        public StoryRecorder.SourceView getView(long dialogId) {
-                            if (dialogId != getDialogId()) {
-                                return null;
+                            @Override
+                            public StoryRecorder.SourceView getView(long dialogId) {
+                                if (dialogId != getDialogId()) {
+                                    return null;
+                                }
+                                updateAvatarRoundRadius();
+                                return StoryRecorder.SourceView.fromAvatarImage(
+                                        TypeTransformer.transformAvatarImageView(avatarImage),
+                                        ChatObject.isForum(currentChat)
+                                );
                             }
-                            updateAvatarRoundRadius();
-                            return StoryRecorder.SourceView.fromAvatarImage(
-                                TypeTransformer.transformAvatarImageView(avatarImage),
-                                ChatObject.isForum(currentChat)
-                            );
-                        }
-                    })
-                    .open(StoryRecorder.SourceView.fromFloatingButton(floatingButtonContainer), true);
+                        })
+                        .open(StoryRecorder.SourceView.fromFloatingButton(floatingButtonContainer), true);
             }
 
             @Override
@@ -2811,6 +2980,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         listView.setLayoutManager(layoutManager);
         listView.setGlowColor(0);
         listView.setAdapter(listAdapter);
+        Log.i("TagHarsh", "ProfileActivity::onCreate: listAdapterCount=" + listAdapter.getItemCount());
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
         listView.setOnItemClickListener((view, position, x, y) -> {
             if (getParentActivity() == null) {
@@ -3178,6 +3348,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 presentFragment(new PremiumPreviewFragment("settings"));
             } else if (position == starsRow) {
                 presentFragment(new StarsIntroActivity());
+            } else if (position == tonRow) {
+                presentFragment(new TONIntroActivity());
             } else if (position == businessRow) {
                 presentFragment(new PremiumPreviewFragment(PremiumPreviewFragment.FEATURES_BUSINESS, "settings"));
             } else if (position == premiumGiftingRow) {
@@ -3390,7 +3562,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                     WebView webView = new WebView(ApplicationLoader.applicationContext);
                                     webView.clearHistory();
                                     webView.destroy();
-                                } catch (Exception e) {}
+                                } catch (Exception e) {
+                                }
                             } else if (which == 15) {
                                 CookieManager cookieManager = CookieManager.getInstance();
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -3532,10 +3705,10 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                 builder2.setTitle("Force performance class");
                                 int currentClass = SharedConfig.getDevicePerformanceClass();
                                 int trueClass = SharedConfig.measureDevicePerformanceClass();
-                                builder2.setItems(new CharSequence[] {
-                                    AndroidUtilities.replaceTags((currentClass == SharedConfig.PERFORMANCE_CLASS_HIGH ? "**HIGH**" : "HIGH") + (trueClass == SharedConfig.PERFORMANCE_CLASS_HIGH ? " (measured)" : "")),
-                                    AndroidUtilities.replaceTags((currentClass == SharedConfig.PERFORMANCE_CLASS_AVERAGE ? "**AVERAGE**" : "AVERAGE") + (trueClass == SharedConfig.PERFORMANCE_CLASS_AVERAGE ? " (measured)" : "")),
-                                    AndroidUtilities.replaceTags((currentClass == SharedConfig.PERFORMANCE_CLASS_LOW ? "**LOW**" : "LOW") + (trueClass == SharedConfig.PERFORMANCE_CLASS_LOW ? " (measured)" : ""))
+                                builder2.setItems(new CharSequence[]{
+                                        AndroidUtilities.replaceTags((currentClass == SharedConfig.PERFORMANCE_CLASS_HIGH ? "**HIGH**" : "HIGH") + (trueClass == SharedConfig.PERFORMANCE_CLASS_HIGH ? " (measured)" : "")),
+                                        AndroidUtilities.replaceTags((currentClass == SharedConfig.PERFORMANCE_CLASS_AVERAGE ? "**AVERAGE**" : "AVERAGE") + (trueClass == SharedConfig.PERFORMANCE_CLASS_AVERAGE ? " (measured)" : "")),
+                                        AndroidUtilities.replaceTags((currentClass == SharedConfig.PERFORMANCE_CLASS_LOW ? "**LOW**" : "LOW") + (trueClass == SharedConfig.PERFORMANCE_CLASS_LOW ? " (measured)" : ""))
                                 }, (dialog2, which2) -> {
                                     int newClass = 2 - which2;
                                     if (newClass == trueClass) {
@@ -3553,7 +3726,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                 MessagesController.getGlobalMainSettings().edit().putBoolean("dual_available", !enabled).apply();
                                 try {
                                     Toast.makeText(getParentActivity(), getString(!enabled ? R.string.DebugMenuDualOnToast : R.string.DebugMenuDualOffToast), Toast.LENGTH_SHORT).show();
-                                } catch (Exception e) {}
+                                } catch (Exception e) {
+                                }
                             } else if (which == 24) {
                                 SharedConfig.toggleSurfaceInStories();
                                 for (int i = 0; i < getParentLayout().getFragmentStack().size(); i++) {
@@ -3761,6 +3935,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                             }
                         }
                     }
+
                     @Override
                     public void didChangeOwner(TLRPC.User user) {
                         undoView.showWithAction(-chatId, currentChat.megagroup ? UndoView.ACTION_OWNER_TRANSFERED_GROUP : UndoView.ACTION_OWNER_TRANSFERED_CHANNEL, user);
@@ -3811,7 +3986,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     invalidate();
                 }
                 if (hasFallbackPhoto && photoDescriptionProgress != 0 && customAvatarProgress != 1f) {
-                    float cy =  onlineTextView[1].getY() + onlineTextView[1].getMeasuredHeight() / 2f;
+                    float cy = onlineTextView[1].getY() + onlineTextView[1].getMeasuredHeight() / 2f;
                     float size = AndroidUtilities.dp(22);
                     float x = AndroidUtilities.dp(28) - customPhotoOffset + onlineTextView[1].getX() - size;
 
@@ -3956,7 +4131,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         });
 
         avatarProgressView = new RadialProgressView(context) {
-            private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
             {
                 paint.setColor(0x55000000);
@@ -4006,13 +4181,13 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
         overlaysView = new OverlaysView(this);
         avatarsViewPager = new ProfileGalleryView(
-            context,
-            userId != 0 ? userId : -chatId,
-            actionBar,
-            listView,
-            TypeTransformer.transformAvatarImageView(avatarImage),
-            getClassGuid(),
-            overlaysView
+                context,
+                userId != 0 ? userId : -chatId,
+                actionBar,
+                listView,
+                TypeTransformer.transformAvatarImageView(avatarImage),
+                getClassGuid(),
+                overlaysView
         ) {
             @Override
             protected void setCustomAvatarProgress(float progress) {
@@ -4072,6 +4247,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         info.setText(s);
                     }
                 }
+
                 @Override
                 protected void onDraw(Canvas canvas) {
                     final int wasRightDrawableX = getRightDrawableX();
@@ -4155,7 +4331,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 onlineTextView[a].setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             }
             onlineTextView[a].setFocusable(a == 0);
-            avatarContainer2.addView(onlineTextView[a], LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 118 - (a == 1 || a == 2 || a == 3? 4 : 0), (a == 1 || a == 2 || a == 3 ? -2 : 0), (a == 0 ? rightMargin - (hasTitleExpanded ? 10 : 0) : 8) - (a == 1 || a == 2 || a == 3 ? 4 : 0), 0));
+            avatarContainer2.addView(onlineTextView[a], LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 118 - (a == 1 || a == 2 || a == 3 ? 4 : 0), (a == 1 || a == 2 || a == 3 ? -2 : 0), (a == 0 ? rightMargin - (hasTitleExpanded ? 10 : 0) : 8) - (a == 1 || a == 2 || a == 3 ? 4 : 0), 0));
         }
         checkPhotoDescriptionAlpha();
         avatarContainer2.addView(animatedStatusView);
@@ -4175,13 +4351,13 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         mediaCounterTextView.setAlpha(0.0f);
         avatarContainer2.addView(mediaCounterTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 118.33f, -2, 8, 0));
         storyView = new ProfileStoriesView(
-            context,
-            currentAccount,
-            getDialogId(),
-            isTopic,
-            avatarContainer,
-            TypeTransformer.transformAvatarImageView(avatarImage),
-            resourcesProvider
+                context,
+                currentAccount,
+                getDialogId(),
+                isTopic,
+                avatarContainer,
+                TypeTransformer.transformAvatarImageView(avatarImage),
+                resourcesProvider
         ) {
             @Override
             protected void onTap(StoryViewer.PlaceProvider provider) {
@@ -4214,12 +4390,12 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
         avatarContainer2.addView(storyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         giftsView = new ProfileGiftsView(
-            context,
-            currentAccount,
-            getDialogId(),
-            avatarContainer,
-            TypeTransformer.transformAvatarImageView(avatarImage),
-            resourcesProvider
+                context,
+                currentAccount,
+                getDialogId(),
+                avatarContainer,
+                TypeTransformer.transformAvatarImageView(avatarImage),
+                resourcesProvider
         );
         avatarContainer2.addView(giftsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         updateProfileData(true);
@@ -4448,14 +4624,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
     }
 
-    FrameLayout floatingButtonContainer;
-    RLottieImageView floatingButton;
-    boolean floatingHidden;
-    float floatingButtonHideProgress;
-    boolean showBoostsAlert;
-
-    private final AccelerateDecelerateInterpolator floatingInterpolator = new AccelerateDecelerateInterpolator();
-
     private void checkCanSendStoryForPosting() {
         TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(chatId);
         if (!ChatObject.isBoostSupported(chat)) {
@@ -4540,8 +4708,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                             }
                             updateAvatarRoundRadius();
                             return StoryRecorder.SourceView.fromAvatarImage(
-                                TypeTransformer.transformAvatarImageView(avatarImage),
-                                ChatObject.isForum(currentChat)
+                                    TypeTransformer.transformAvatarImageView(avatarImage),
+                                    ChatObject.isForum(currentChat)
                             );
                         }
                     });
@@ -4812,6 +4980,11 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
     }
 
+    @Override
+    public boolean isMyProfile() {
+        return myProfile;
+    }
+
     public void getEmojiStatusLocation(Rect rect) {
         if (nameTextView[1] == null) {
             return;
@@ -4862,7 +5035,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         presentFragment(TopicsFragment.getTopicsOrChat(this, args));
     }
 
-    private SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow selectAnimatedEmojiDialog;
     public void showStatusSelect() {
         if (selectAnimatedEmojiDialog != null) {
             return;
@@ -4899,9 +5071,9 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     if (savedStarGift != null && MessagesController.getGlobalMainSettings().getInt("statusgiftpage", 0) < 2) {
                         MessagesController.getGlobalMainSettings().edit().putInt("statusgiftpage", MessagesController.getGlobalMainSettings().getInt("statusgiftpage", 0) + 1).apply();
                         new StarGiftSheet(getContext(), currentAccount, UserConfig.getInstance(currentAccount).getClientUserId(), resourcesProvider)
-                            .set(savedStarGift, null)
-                            .setupWearPage()
-                            .show();
+                                .set(savedStarGift, null)
+                                .setupWearPage()
+                                .show();
                         if (popup[0] != null) {
                             selectAnimatedEmojiDialog = null;
                             popup[0].dismiss();
@@ -5161,27 +5333,27 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             };
 
             ItemOptions.makeOptions(this, view)
-                .setScrimViewBackground(new ColorDrawable(Theme.getColor(Theme.key_windowBackgroundWhite)))
-                .addIf(canEditAdmin, R.drawable.msg_admins, editingAdmin ? LocaleController.getString(R.string.EditAdminRights) : LocaleController.getString(R.string.SetAsAdmin), () -> openRightsEdit.run(0))
-                .addIf(canRestrict, R.drawable.msg_permissions, LocaleController.getString(R.string.ChangePermissions), () -> {
-                    if (channelParticipant instanceof TLRPC.TL_channelParticipantAdmin || participant instanceof TLRPC.TL_chatParticipantAdmin) {
-                        showDialog(
-                            new AlertDialog.Builder(getParentActivity(), resourcesProvider)
-                                .setTitle(LocaleController.getString(R.string.AppName))
-                                .setMessage(formatString("AdminWillBeRemoved", R.string.AdminWillBeRemoved, ContactsController.formatName(user.first_name, user.last_name)))
-                                .setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> openRightsEdit.run(1))
-                                .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
-                                .create()
-                        );
-                    } else {
-                        openRightsEdit.run(1);
-                    }
-                })
-                .addIf(allowKick, R.drawable.msg_remove, LocaleController.getString(R.string.KickFromGroup), true, () -> {
-                    kickUser(selectedUser, participant);
-                })
-                .setMinWidth(190)
-                .show();
+                    .setScrimViewBackground(new ColorDrawable(Theme.getColor(Theme.key_windowBackgroundWhite)))
+                    .addIf(canEditAdmin, R.drawable.msg_admins, editingAdmin ? LocaleController.getString(R.string.EditAdminRights) : LocaleController.getString(R.string.SetAsAdmin), () -> openRightsEdit.run(0))
+                    .addIf(canRestrict, R.drawable.msg_permissions, LocaleController.getString(R.string.ChangePermissions), () -> {
+                        if (channelParticipant instanceof TLRPC.TL_channelParticipantAdmin || participant instanceof TLRPC.TL_chatParticipantAdmin) {
+                            showDialog(
+                                    new AlertDialog.Builder(getParentActivity(), resourcesProvider)
+                                            .setTitle(LocaleController.getString(R.string.AppName))
+                                            .setMessage(formatString("AdminWillBeRemoved", R.string.AdminWillBeRemoved, ContactsController.formatName(user.first_name, user.last_name)))
+                                            .setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> openRightsEdit.run(1))
+                                            .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
+                                            .create()
+                            );
+                        } else {
+                            openRightsEdit.run(1);
+                        }
+                    })
+                    .addIf(allowKick, R.drawable.msg_remove, LocaleController.getString(R.string.KickFromGroup), true, () -> {
+                        kickUser(selectedUser, participant);
+                    })
+                    .setMinWidth(190)
+                    .show();
         } else {
             if (participant.user_id == getUserConfig().getClientUserId()) {
                 return false;
@@ -5341,18 +5513,18 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                             final String cryptoAmount = BillingController.getInstance().formatCurrency(info.crypto_amount, info.crypto_currency);
                             final String amount = BillingController.getInstance().formatCurrency(info.amount, info.currency);
                             BulletinFactory.of(shareAlert.bulletinContainer2, resourcesProvider)
-                                .createImageBulletin(
-                                    R.drawable.filled_username,
-                                    AndroidUtilities.withLearnMore(AndroidUtilities.replaceTags(formatString(R.string.FragmentChannelUsername, usernameStr, date, cryptoAmount, TextUtils.isEmpty(amount) ? "" : "("+amount+")")), () -> {
+                                    .createImageBulletin(
+                                            R.drawable.filled_username,
+                                            AndroidUtilities.withLearnMore(AndroidUtilities.replaceTags(formatString(R.string.FragmentChannelUsername, usernameStr, date, cryptoAmount, TextUtils.isEmpty(amount) ? "" : "(" + amount + ")")), () -> {
+                                                Bulletin.hideVisible();
+                                                Browser.openUrl(getContext(), info.url);
+                                            })
+                                    )
+                                    .setOnClickListener(v -> {
                                         Bulletin.hideVisible();
                                         Browser.openUrl(getContext(), info.url);
                                     })
-                                )
-                                .setOnClickListener(v -> {
-                                    Bulletin.hideVisible();
-                                    Browser.openUrl(getContext(), info.url);
-                                })
-                                .show(false);
+                                    .show(false);
                         } else {
                             BulletinFactory.showError(err);
                         }
@@ -5445,7 +5617,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
             AtomicReference<ActionBarPopupWindow> popupWindowRef = new AtomicReference<>();
             ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getContext(), R.drawable.popup_fixed_alert, resourcesProvider) {
-                Path path = new Path();
+                final Path path = new Path();
 
                 @Override
                 protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
@@ -5507,7 +5679,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 fragmentInfoView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
                 fragmentInfoView.setTextColor(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider));
                 fragmentInfoView.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteValueText, resourcesProvider));
-                fragmentInfoView.setBackground(Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_dialogButtonSelector, resourcesProvider), 0,6));
+                fragmentInfoView.setBackground(Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_dialogButtonSelector, resourcesProvider), 0, 6));
 
                 SpannableStringBuilder spanned = new SpannableStringBuilder(AndroidUtilities.replaceTags(LocaleController.getString(R.string.AnonymousNumberNotice)));
 
@@ -5594,11 +5766,11 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     return;
                 }
                 CharSequence[] items = withTranslate[0] ? new CharSequence[]{LocaleController.getString(R.string.Copy), LocaleController.getString(R.string.TranslateMessage)} : new CharSequence[]{LocaleController.getString(R.string.Copy)};
-                int[] icons = withTranslate[0] ? new int[] {R.drawable.msg_copy, R.drawable.msg_translate} : new int[] {R.drawable.msg_copy};
+                int[] icons = withTranslate[0] ? new int[]{R.drawable.msg_copy, R.drawable.msg_translate} : new int[]{R.drawable.msg_copy};
 
                 AtomicReference<ActionBarPopupWindow> popupWindowRef = new AtomicReference<>();
                 ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getContext(), R.drawable.popup_fixed_alert, resourcesProvider) {
-                    Path path = new Path();
+                    final Path path = new Path();
 
                     @Override
                     protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
@@ -5676,8 +5848,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     LanguageDetector.detectLanguage(finalText, (fromLang) -> {
                         fromLanguage[0] = fromLang;
                         withTranslate[0] = fromLang != null && (!fromLang.equals(toLang) || fromLang.equals("und")) && (
-                            translateButtonEnabled && !RestrictedLanguagesSelectActivity.getRestrictedLanguages().contains(fromLang) ||
-                            (currentChat != null && (currentChat.has_link || ChatObject.isPublic(currentChat))) && ("uk".equals(fromLang) || "ru".equals(fromLang)));
+                                translateButtonEnabled && !RestrictedLanguagesSelectActivity.getRestrictedLanguages().contains(fromLang) ||
+                                        (currentChat != null && (currentChat.has_link || ChatObject.isPublic(currentChat))) && ("uk".equals(fromLang) || "ru".equals(fromLang)));
                         showMenu.run();
                     }, (error) -> {
                         FileLog.e("mlkit: failed to detect language in selection", error);
@@ -5706,7 +5878,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
             AtomicReference<ActionBarPopupWindow> popupWindowRef = new AtomicReference<>();
             ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getContext(), R.drawable.popup_fixed_alert, resourcesProvider) {
-                Path path = new Path();
+                final Path path = new Path();
 
                 @Override
                 protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
@@ -5829,95 +6001,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         getConnectionsManager().bindRequestToGuid(reqId, classGuid);
     }
 
-    private AnimatorSet headerAnimatorSet;
-    private AnimatorSet headerShadowAnimatorSet;
-    float mediaHeaderAnimationProgress;
-    private boolean mediaHeaderVisible;
-    private Property<ActionBar, Float> ACTIONBAR_HEADER_PROGRESS = new AnimationProperties.FloatProperty<ActionBar>("avatarAnimationProgress") {
-        @Override
-        public void setValue(ActionBar object, float value) {
-            mediaHeaderAnimationProgress = value;
-            if (storyView != null) {
-                storyView.setActionBarActionMode(value);
-            }
-            if (giftsView != null) {
-                giftsView.setActionBarActionMode(value);
-            }
-            topView.invalidate();
-
-            int color1 = getThemedColor(Theme.key_profile_title);
-            int color2 = getThemedColor(Theme.key_player_actionBarTitle);
-            int c = AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f);
-            nameTextView[1].setTextColor(c);
-            if (lockIconDrawable != null) {
-                lockIconDrawable.setColorFilter(c, PorterDuff.Mode.MULTIPLY);
-            }
-            if (scamDrawable != null) {
-                color1 = getThemedColor(Theme.key_avatar_subtitleInProfileBlue);
-                scamDrawable.setColor(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f));
-            }
-
-            color1 = peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon);
-            color2 = getThemedColor(Theme.key_actionBarActionModeDefaultIcon);
-            actionBar.setItemsColor(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), false);
-
-            color1 = peerColor != null ? Theme.ACTION_BAR_WHITE_SELECTOR_COLOR : peerColor != null ? 0x20ffffff : getThemedColor(Theme.key_avatar_actionBarSelectorBlue);
-            color2 = getThemedColor(Theme.key_actionBarActionModeDefaultSelector);
-            actionBar.setItemsBackgroundColor(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), false);
-
-            topView.invalidate();
-            otherItem.setIconColor(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon));
-            callItem.setIconColor(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon));
-            videoCallItem.setIconColor(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon));
-            editItem.setIconColor(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon));
-
-            if (verifiedDrawable[0] != null) {
-                color1 = getThemedColor(Theme.key_profile_verifiedBackground);
-                color2 = getThemedColor(Theme.key_player_actionBarTitle);
-                verifiedDrawable[0].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
-            }
-            if (verifiedDrawable[1] != null) {
-                color1 = peerColor != null ? Theme.adaptHSV(ColorUtils.blendARGB(peerColor.getColor2(), peerColor.hasColor6(Theme.isCurrentThemeDark()) ? peerColor.getColor5() : peerColor.getColor3(), .4f), +.1f, Theme.isCurrentThemeDark() ? -.1f : -.08f) : getThemedColor(Theme.key_profile_verifiedBackground);
-                color2 = getThemedColor(Theme.key_player_actionBarTitle);
-                verifiedDrawable[1].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
-            }
-
-            if (verifiedCheckDrawable[0] != null) {
-                color1 = getThemedColor(Theme.key_profile_verifiedCheck);
-                color2 = getThemedColor(Theme.key_windowBackgroundWhite);
-                verifiedCheckDrawable[0].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
-            }
-            if (verifiedCheckDrawable[1] != null) {
-                color1 = peerColor != null ? Color.WHITE : dontApplyPeerColor(getThemedColor(Theme.key_profile_verifiedCheck));
-                color2 = getThemedColor(Theme.key_windowBackgroundWhite);
-                verifiedCheckDrawable[1].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
-            }
-
-
-            if (premiumStarDrawable[0] != null) {
-                color1 = getThemedColor(Theme.key_profile_verifiedBackground);
-                color2 = getThemedColor(Theme.key_player_actionBarTitle);
-                premiumStarDrawable[0].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
-            }
-            if (premiumStarDrawable[1] != null) {
-                color1 = dontApplyPeerColor(getThemedColor(Theme.key_profile_verifiedBackground));
-                color2 = dontApplyPeerColor(getThemedColor(Theme.key_player_actionBarTitle));
-                premiumStarDrawable[1].setColorFilter(AndroidUtilities.getOffsetColor(color1, color2, value, 1.0f), PorterDuff.Mode.MULTIPLY);
-            }
-
-            updateEmojiStatusDrawableColor();
-
-            if (avatarsViewPagerIndicatorView.getSecondaryMenuItem() != null && (videoCallItemVisible || editItemVisible || callItemVisible)) {
-                needLayoutText(Math.min(1f, extraHeight / AndroidUtilities.dp(88f)));
-            }
-        }
-
-        @Override
-        public Float get(ActionBar object) {
-            return mediaHeaderAnimationProgress;
-        }
-    };
-
     private void setMediaHeaderVisible(boolean visible) {
         if (mediaHeaderVisible == visible) {
             return;
@@ -5986,7 +6069,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         animators.add(ObjectAnimator.ofFloat(sharedMediaLayout.photoVideoOptionsItem, View.TRANSLATION_Y, visible ? 0.0f : AndroidUtilities.dp(10)));
         animators.add(ObjectAnimator.ofFloat(actionBar, ACTIONBAR_HEADER_PROGRESS, visible ? 1.0f : 0.0f));
         animators.add(ObjectAnimator.ofFloat(onlineTextView[1], View.ALPHA, visible ? 0.0f : 1.0f));
-        if (myProfile) animators.add(ObjectAnimator.ofFloat(onlineTextView[3], View.ALPHA, visible ? 0.0f : 1.0f));
+        if (myProfile)
+            animators.add(ObjectAnimator.ofFloat(onlineTextView[3], View.ALPHA, visible ? 0.0f : 1.0f));
         animators.add(ObjectAnimator.ofFloat(mediaCounterTextView, View.ALPHA, visible ? 1.0f : 0.0f));
         if (visible) {
             animators.add(ObjectAnimator.ofFloat(this, HEADER_SHADOW, 0.0f));
@@ -7156,7 +7240,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         if (timerDrawable == null) {
             return;
         }
-        final boolean fromMonoforum = previousTransitionFragment instanceof ChatActivity && ChatObject.isMonoForum(((ChatActivity) previousTransitionFragment).getCurrentChat());
+        final boolean fromMonoforum = previousTransitionFragment instanceof ChatActivity && ChatObject.isMonoForum(previousTransitionFragment.getCurrentChat());
         if (fromMonoforum) {
             timeItem.setTag(null);
             timeItem.setVisibility(View.GONE);
@@ -7205,10 +7289,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
     @Override
     public boolean needDelayOpenAnimation() {
-        if (playProfileAnimation == 0) {
-            return true;
-        }
-        return false;
+        return playProfileAnimation == 0;
     }
 
     @Override
@@ -7364,8 +7445,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         updateListAnimated(false);
     }
 
-    public boolean isFragmentOpened;
-
     @Override
     public void onTransitionAnimationStart(boolean isOpen, boolean backward) {
         super.onTransitionAnimationStart(isOpen, backward);
@@ -7422,8 +7501,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     public float getAvatarAnimationProgress() {
         return avatarAnimationProgress;
     }
-
-    AboutLinkCell aboutLinkCell;
 
     @Keep
     public void setAvatarAnimationProgress(float progress) {
@@ -7510,8 +7587,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
     }
 
-    boolean profileTransitionInProgress;
-
     @Override
     public AnimatorSet onCustomTransitionAnimation(final boolean isOpen, final Runnable callback) {
         if (playProfileAnimation != 0 && allowProfileAnimation && !isPulledDown && !disableProfileAnimation) {
@@ -7542,7 +7617,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     }
                 }
             }
-            final boolean fromChat = previousTransitionFragment instanceof ChatActivity && ((ChatActivity) previousTransitionFragment).getCurrentChat() != null;
+            final boolean fromChat = previousTransitionFragment instanceof ChatActivity && previousTransitionFragment.getCurrentChat() != null;
             if (previousTransitionFragment != null) {
                 updateTimeItem();
                 updateStar();
@@ -7825,7 +7900,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
     private int getAverageColor(ImageReceiver imageReceiver) {
         if (imageReceiver.getDrawable() instanceof VectorAvatarThumbDrawable) {
-            return ((VectorAvatarThumbDrawable)imageReceiver.getDrawable()).gradientTools.getAverageColor();
+            return ((VectorAvatarThumbDrawable) imageReceiver.getDrawable()).gradientTools.getAverageColor();
         }
         return AndroidUtilities.calcBitmapColor(avatarImage.getImageReceiver().getBitmap());
     }
@@ -7905,9 +7980,9 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     }
 
     public void setUserInfo(
-        TLRPC.UserFull value,
-        ProfileChannelCell.ChannelMessageFetcher channelMessageFetcher,
-        ProfileBirthdayEffect.BirthdayEffectFetcher birthdayAssetsFetcher
+            TLRPC.UserFull value,
+            ProfileChannelCell.ChannelMessageFetcher channelMessageFetcher,
+            ProfileBirthdayEffect.BirthdayEffectFetcher birthdayAssetsFetcher
     ) {
         userInfo = value;
         if (storyView != null) {
@@ -8018,6 +8093,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         languageRow = -1;
         premiumRow = -1;
         starsRow = -1;
+        tonRow = -1;
         businessRow = -1;
         premiumGiftingRow = -1;
         premiumSectionsRow = -1;
@@ -8184,13 +8260,16 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 if (getMessagesController().starsPurchaseAvailable()) {
                     starsRow = rowCount++;
                 }
+                if (ApplicationLoader.isBetaBuild() || ApplicationLoader.isStandaloneBuild() || ApplicationLoader.isHuaweiStoreBuild() || (StarsController.getInstance(currentAccount, true).balanceAvailable() && (StarsController.getInstance(currentAccount, true).hasTransactions() || StarsController.getInstance(currentAccount, true).getBalance().positive()))) {
+                    tonRow = rowCount++;
+                }
                 if (!getMessagesController().premiumFeaturesBlocked()) {
                     businessRow = rowCount++;
                 }
                 if (!getMessagesController().premiumPurchaseBlocked()) {
                     premiumGiftingRow = rowCount++;
                 }
-                if (premiumRow >= 0 || starsRow >= 0 || businessRow >= 0 || premiumGiftingRow >= 0) {
+                if (premiumRow >= 0 || starsRow >= 0 || tonRow >= 0 || businessRow >= 0 || premiumGiftingRow >= 0) {
                     premiumSectionsRow = rowCount++;
                 }
                 helpHeaderRow = rowCount++;
@@ -8262,8 +8341,10 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 }
 
                 if (isBot) {
-                    if (botLocation == null && getContext() != null) botLocation = BotLocation.get(getContext(), currentAccount, userId);
-                    if (botBiometry == null && getContext() != null) botBiometry = BotBiometry.get(getContext(), currentAccount, userId);
+                    if (botLocation == null && getContext() != null)
+                        botLocation = BotLocation.get(getContext(), currentAccount, userId);
+                    if (botBiometry == null && getContext() != null)
+                        botBiometry = BotBiometry.get(getContext(), currentAccount, userId);
                     final boolean containsPermissionLocation = botLocation != null && botLocation.asked();
                     final boolean containsPermissionBiometry = botBiometry != null && botBiometry.asked();
                     final boolean containsPermissionEmojiStatus = userInfo != null && userInfo.bot_can_manage_emoji_status || SetupEmojiStatusSheet.getAccessRequested(getContext(), currentAccount, userId);
@@ -8378,14 +8459,14 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         blockedUsersRow = rowCount++;
                     }
                     if (
-                        chatInfo != null &&
-                        chatInfo.can_view_stars_revenue && (
-                            BotStarsController.getInstance(currentAccount).getBotStarsBalance(-chatId).amount > 0 ||
-                            BotStarsController.getInstance(currentAccount).hasTransactions(-chatId)
-                        ) ||
-                        chatInfo != null &&
-                        chatInfo.can_view_revenue &&
-                        BotStarsController.getInstance(currentAccount).getTONBalance(-chatId) > 0
+                            chatInfo != null &&
+                                    chatInfo.can_view_stars_revenue && (
+                                    BotStarsController.getInstance(currentAccount).getBotStarsBalance(-chatId).amount > 0 ||
+                                            BotStarsController.getInstance(currentAccount).hasTransactions(-chatId)
+                            ) ||
+                                    chatInfo != null &&
+                                            chatInfo.can_view_revenue &&
+                                            BotStarsController.getInstance(currentAccount).getTONBalance(-chatId) > 0
                     ) {
                         channelBalanceRow = rowCount++;
                     }
@@ -8394,14 +8475,14 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 }
             } else {
                 if (
-                    chatInfo != null &&
-                        chatInfo.can_view_stars_revenue && (
-                        BotStarsController.getInstance(currentAccount).getBotStarsBalance(-chatId).amount > 0 ||
-                        BotStarsController.getInstance(currentAccount).hasTransactions(-chatId)
-                    ) ||
-                    chatInfo != null &&
-                    chatInfo.can_view_revenue &&
-                    BotStarsController.getInstance(currentAccount).getTONBalance(-chatId) > 0
+                        chatInfo != null &&
+                                chatInfo.can_view_stars_revenue && (
+                                BotStarsController.getInstance(currentAccount).getBotStarsBalance(-chatId).amount > 0 ||
+                                        BotStarsController.getInstance(currentAccount).hasTransactions(-chatId)
+                        ) ||
+                                chatInfo != null &&
+                                        chatInfo.can_view_revenue &&
+                                        BotStarsController.getInstance(currentAccount).getTONBalance(-chatId) > 0
                 ) {
                     channelBalanceRow = rowCount++;
                     channelBalanceSectionRow = rowCount++;
@@ -8540,8 +8621,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 verifiedCheckDrawable[1].setColorFilter(AndroidUtilities.getOffsetColor(color, getThemedColor(Theme.key_windowBackgroundWhite), mediaHeaderAnimationProgress, 1.0f), PorterDuff.Mode.MULTIPLY);
             }
             verifiedCrossfadeDrawable[a] = new CrossfadeDrawable(
-                new CombinedDrawable(verifiedDrawable[a], verifiedCheckDrawable[a]),
-                ContextCompat.getDrawable(getParentActivity(), R.drawable.verified_profile)
+                    new CombinedDrawable(verifiedDrawable[a], verifiedCheckDrawable[a]),
+                    ContextCompat.getDrawable(getParentActivity(), R.drawable.verified_profile)
             );
         }
         return verifiedCrossfadeDrawable[a];
@@ -8559,6 +8640,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
         return premiumCrossfadeDrawable[a];
     }
+
     private Drawable getBotVerificationDrawable(long icon, boolean animated, int a) {
         if (botVerificationDrawable[a] == null) {
             botVerificationDrawable[a] = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(nameTextView[a], AndroidUtilities.dp(17), a == 0 ? AnimatedEmojiDrawable.CACHE_TYPE_EMOJI_STATUS : AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD);
@@ -8615,10 +8697,10 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return emojiStatusDrawable[a];
     }
 
-    private float lastEmojiStatusProgress;
     private void updateEmojiStatusDrawableColor() {
         updateEmojiStatusDrawableColor(lastEmojiStatusProgress);
     }
+
     private void updateEmojiStatusDrawableColor(float progress) {
         for (int a = 0; a < 2; ++a) {
             final int fromColor;
@@ -8645,12 +8727,10 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         animatedStatusView.setScaleX(nameTextView[1].getScaleX());
         animatedStatusView.setScaleY(nameTextView[1].getScaleY());
         animatedStatusView.translate(
-            nameTextView[1].getX() + nameTextView[1].getRightDrawableX() * nameTextView[1].getScaleX(),
-            nameTextView[1].getY() + (nameTextView[1].getHeight() - (nameTextView[1].getHeight() - nameTextView[1].getRightDrawableY()) * nameTextView[1].getScaleY())
+                nameTextView[1].getX() + nameTextView[1].getRightDrawableX() * nameTextView[1].getScaleX(),
+                nameTextView[1].getY() + (nameTextView[1].getHeight() - (nameTextView[1].getHeight() - nameTextView[1].getRightDrawableY()) * nameTextView[1].getScaleY())
         );
     }
-
-    private MessagesController.PeerColor peerColor;
 
     void updateProfileData(boolean reload) {
         if (avatarContainer == null || nameTextView == null || getParentActivity() == null) {
@@ -8762,7 +8842,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     hasFallbackPhoto = true;
                     TLRPC.PhotoSize smallSize = FileLoader.getClosestPhotoSizeWithSize(getUserInfo().fallback_photo.sizes, 1000);
                     if (smallSize != null) {
-                        fallbackImage.setImage(ImageLocation.getForPhoto(smallSize, getUserInfo().fallback_photo), "50_50", (Drawable) null, 0, null, UserConfig.getInstance(currentAccount).getCurrentUser(), 0);
+                        fallbackImage.setImage(ImageLocation.getForPhoto(smallSize, getUserInfo().fallback_photo), "50_50", null, 0, null, UserConfig.getInstance(currentAccount).getCurrentUser(), 0);
                     }
                 } else {
                     newString2 = LocaleController.getString(R.string.Online);
@@ -8865,7 +8945,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         rightIconIsStatus = false;
                         rightIconIsPremium = true;
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(null, false, false, a));
-                        nameTextViewRightDrawableContentDescription = LocaleController.getString( R.string.AccDescrPremium);
+                        nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.AccDescrPremium);
                     } else {
                         nameTextView[a].setRightDrawable(null);
                         nameTextViewRightDrawableContentDescription = null;
@@ -9191,7 +9271,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     if (chat.scam || chat.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(chat.scam ? 0 : 1));
                     } else if (chat.verified) {
-                        nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a)) ;
+                        nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                     } else if (getMessagesController().isDialogMuted(-chatId, topicId)) {
                         nameTextView[a].setRightDrawable2(getThemedDrawable(Theme.key_drawable_muteIconDrawable));
                     } else {
@@ -9384,7 +9464,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return dontApplyPeerColor(color, actionBar, null);
     }
 
-    private final SparseIntArray adaptedColors = new SparseIntArray();
     private int dontApplyPeerColor(int color, boolean actionBar, Boolean online) {
         return color;
     }
@@ -9497,7 +9576,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                 otherItem.addSubItem(block_contact, R.drawable.msg_retry, LocaleController.getString(R.string.BotRestart));
                             }
                         } else {
-                            otherItem.addSubItem(block_contact, !userBlocked ? R.drawable.msg_block : R.drawable.msg_block, !userBlocked ? LocaleController.getString(R.string.BlockContact) : LocaleController.getString(R.string.Unblock));
+                            otherItem.addSubItem(block_contact, R.drawable.msg_block, !userBlocked ? LocaleController.getString(R.string.BlockContact) : LocaleController.getString(R.string.Unblock));
                         }
                     }
                 } else {
@@ -9507,7 +9586,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     if (!TextUtils.isEmpty(user.phone)) {
                         otherItem.addSubItem(share_contact, R.drawable.msg_share, LocaleController.getString(R.string.ShareContact));
                     }
-                    otherItem.addSubItem(block_contact, !userBlocked ? R.drawable.msg_block : R.drawable.msg_block, !userBlocked ? LocaleController.getString(R.string.BlockContact) : LocaleController.getString(R.string.Unblock));
+                    otherItem.addSubItem(block_contact, R.drawable.msg_block, !userBlocked ? LocaleController.getString(R.string.BlockContact) : LocaleController.getString(R.string.Unblock));
                     otherItem.addSubItem(edit_contact, R.drawable.msg_edit, LocaleController.getString(R.string.EditContact));
                     otherItem.addSubItem(delete_contact, R.drawable.msg_delete, LocaleController.getString(R.string.DeleteContact));
                 }
@@ -10042,7 +10121,16 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         avatarProgressView.setProgress(0.0f);
     }
 
-    int avatarUploadingRequest;
+    @Override
+    public void didUploadFailed() {
+        ImageUpdater.ImageUpdaterDelegate.super.didUploadFailed();
+    }
+
+    @Override
+    public boolean canFinishFragment() {
+        return ImageUpdater.ImageUpdaterDelegate.super.canFinishFragment();
+    }
+
     @Override
     public void didUploadPhoto(final TLRPC.InputFile photo, final TLRPC.InputFile video, double videoStartTimestamp, String videoPath, TLRPC.PhotoSize bigSize, final TLRPC.PhotoSize smallSize, boolean isVideo, TLRPC.VideoSize emojiMarkup) {
         AndroidUtilities.runOnUIThread(() -> {
@@ -10152,6 +10240,21 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         });
     }
 
+    @Override
+    public PhotoViewer.PlaceProviderObject getCloseIntoObject() {
+        return ImageUpdater.ImageUpdaterDelegate.super.getCloseIntoObject();
+    }
+
+    @Override
+    public boolean supportsBulletin() {
+        return ImageUpdater.ImageUpdaterDelegate.super.supportsBulletin();
+    }
+
+    @Override
+    public String getInitialSearchString() {
+        return ImageUpdater.ImageUpdaterDelegate.super.getInitialSearchString();
+    }
+
     private void showAvatarProgress(boolean show, boolean animated) {
         if (avatarProgressView == null) {
             return;
@@ -10219,125 +10322,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
     }
 
-    public static void sendLogs(Activity activity, boolean last) {
-        if (activity == null) {
-            return;
-        }
-        AlertDialog progressDialog = new AlertDialog(activity, AlertDialog.ALERT_TYPE_SPINNER);
-        progressDialog.setCanCancel(false);
-        progressDialog.show();
-        Utilities.globalQueue.postRunnable(() -> {
-            try {
-                File dir = AndroidUtilities.getLogsDir();
-                if (dir == null) {
-                    AndroidUtilities.runOnUIThread(progressDialog::dismiss);
-                    return;
-                }
-
-                File zipFile = new File(dir, "logs.zip");
-                if (zipFile.exists()) {
-                    zipFile.delete();
-                }
-
-                ArrayList<File> files = new ArrayList<>();
-
-                File[] logFiles = dir.listFiles();
-                for (File f : logFiles) {
-                    files.add(f);
-                }
-
-                File filesDir = ApplicationLoader.getFilesDirFixed();
-                filesDir = new File(filesDir, "malformed_database/");
-                if (filesDir.exists() && filesDir.isDirectory()) {
-                    File[] malformedDatabaseFiles = filesDir.listFiles();
-                    for (File file : malformedDatabaseFiles) {
-                        files.add(file);
-                    }
-                }
-
-                boolean[] finished = new boolean[1];
-                long currentDate = System.currentTimeMillis();
-
-                BufferedInputStream origin = null;
-                ZipOutputStream out = null;
-                try {
-                    FileOutputStream dest = new FileOutputStream(zipFile);
-                    out = new ZipOutputStream(new BufferedOutputStream(dest));
-                    byte[] data = new byte[1024 * 64];
-
-                    for (int i = 0; i < files.size(); i++) {
-                        File file = files.get(i);
-                        if (!file.getName().contains("cache4") && (last || file.getName().contains("_mtproto")) && (currentDate - file.lastModified()) > 24 * 60 * 60 * 1000) {
-                            continue;
-                        }
-                        if (!file.exists()) {
-                            continue;
-                        }
-                        FileInputStream fi = new FileInputStream(file);
-                        origin = new BufferedInputStream(fi, data.length);
-
-                        ZipEntry entry = new ZipEntry(file.getName());
-                        out.putNextEntry(entry);
-                        int count;
-                        while ((count = origin.read(data, 0, data.length)) != -1) {
-                            out.write(data, 0, count);
-                        }
-                        origin.close();
-                        origin = null;
-                    }
-                    finished[0] = true;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (origin != null) {
-                        origin.close();
-                    }
-                    if (out != null) {
-                        out.close();
-                    }
-                }
-
-                AndroidUtilities.runOnUIThread(() -> {
-                    try {
-                        progressDialog.dismiss();
-                    } catch (Exception ignore) {
-
-                    }
-                    if (finished[0]) {
-                        Uri uri;
-                        if (Build.VERSION.SDK_INT >= 24) {
-                            uri = FileProvider.getUriForFile(activity, ApplicationLoader.getApplicationId() + ".provider", zipFile);
-                        } else {
-                            uri = Uri.fromFile(zipFile);
-                        }
-
-                        Intent i = new Intent(Intent.ACTION_SEND);
-                        if (Build.VERSION.SDK_INT >= 24) {
-                            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        }
-                        i.setType("message/rfc822");
-                        i.putExtra(Intent.EXTRA_EMAIL, "");
-                        i.putExtra(Intent.EXTRA_SUBJECT, "Logs from " + LocaleController.getInstance().getFormatterStats().format(System.currentTimeMillis()));
-                        i.putExtra(Intent.EXTRA_STREAM, uri);
-                        if (activity != null) {
-                            try {
-                                activity.startActivityForResult(Intent.createChooser(i, "Select email application."), 500);
-                            } catch (Exception e) {
-                                FileLog.e(e);
-                            }
-                        }
-                    } else {
-                        if (activity != null) {
-                            Toast.makeText(activity, LocaleController.getString(R.string.ErrorOccurred), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-    
     void openUrl(String url, Browser.Progress progress) {
         if (url.startsWith("@")) {
             getMessagesController().openByUserName(url.substring(1), ProfileActivity.this, 0, progress);
@@ -10369,8 +10353,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     private void dimBehindView(boolean enable) {
         dimBehindView(enable ? 0.2f : 0);
     }
-
-    private AnimatorSet scrimAnimatorSet = null;
 
     private void dimBehindView(float value) {
         boolean enable = value > 0;
@@ -10574,8 +10556,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             return;
         }
 
-        Log.d("TagHarsh", "listView - " + listView);
-
         if (!triedInLayout && listView.isInLayout()) {
             if (!listView.isAttachedToWindow()) return;
             listView.post(() -> updateListAnimated(updateOnlineCount, true));
@@ -10609,10 +10589,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         AndroidUtilities.updateVisibleRows(listView);
     }
 
-    int savedScrollPosition = -1;
-    int savedScrollOffset;
-    boolean savedScrollToSharedMedia;
-
     void saveScrollPosition() {
         if (listView != null && layoutManager != null && listView.getChildCount() > 0 && !savedScrollToSharedMedia) {
             View view = null;
@@ -10642,6 +10618,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     public void scrollToSharedMedia() {
         scrollToSharedMedia(false);
     }
+
     public void scrollToSharedMedia(boolean animated) {
         if (sharedMediaRow >= 0) {
             if (animated) {
@@ -10675,8 +10652,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
     }
 
-    private boolean fullyVisible;
-
     @Override
     public void onBecomeFullyVisible() {
         super.onBecomeFullyVisible();
@@ -10704,7 +10679,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             combinedDrawable.setIconSize(AndroidUtilities.dp(56), AndroidUtilities.dp(56));
             writeButton.setBackground(combinedDrawable);
             writeButton.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.MULTIPLY));
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -10779,7 +10755,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return link;
     }
 
-    float photoDescriptionProgress = -1;
     private void checkPhotoDescriptionAlpha() {
         float p = photoDescriptionProgress;
         if (playProfileAnimation == 1 && (!fragmentOpened || openAnimationInProgress)) {
@@ -10943,7 +10918,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 info.append("; mi=").append(capabilities.getMaxSupportedInstances()).append(")");
             }
             info.append("\n");
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
     }
 
     @Override
@@ -10974,7 +10950,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         blurredView.setVisibility(View.VISIBLE);
     }
 
-    private ShowDrawable showStatusButton;
     public ShowDrawable getShowStatusButton() {
         if (showStatusButton == null) {
             showStatusButton = new ShowDrawable(LocaleController.getString(R.string.StatusHiddenShow));
@@ -10982,120 +10957,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             showStatusButton.setBackgroundColor(ColorUtils.blendARGB(Theme.multAlpha(Theme.adaptHSV(actionBarBackgroundColor, +0.18f, -0.1f), 0.5f), 0x23ffffff, currentExpandAnimatorValue));
         }
         return showStatusButton;
-    }
-
-    public static class ShowDrawable extends Drawable implements SimpleTextView.PressableDrawable {
-
-        public final AnimatedTextView.AnimatedTextDrawable textDrawable;
-        public final Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        public ShowDrawable(String string) {
-            textDrawable = new AnimatedTextView.AnimatedTextDrawable();
-            textDrawable.setCallback(new Callback() {
-                @Override
-                public void invalidateDrawable(@NonNull Drawable who) {
-                    if (view != null) {
-                        view.invalidate();
-                    }
-                }
-                @Override
-                public void scheduleDrawable(@NonNull Drawable who, @NonNull Runnable what, long when) {}
-                @Override
-                public void unscheduleDrawable(@NonNull Drawable who, @NonNull Runnable what) {}
-            });
-            textDrawable.setText(string);
-            textDrawable.setTextSize(dp(11));
-            textDrawable.setGravity(Gravity.CENTER);
-            backgroundPaint.setColor(0x1f000000);
-        }
-
-        private int textColor;
-        public void setBackgroundColor(int backgroundColor) {
-            if (backgroundPaint.getColor() != backgroundColor) {
-                backgroundPaint.setColor(backgroundColor);
-                invalidateSelf();
-            }
-        }
-        public void setTextColor(int textColor) {
-            if (this.textColor != textColor) {
-                this.textColor = textColor;
-                invalidateSelf();
-            }
-        }
-
-        @Override
-        public void draw(@NonNull Canvas canvas) {
-            final float alpha = this.alpha * this.alpha2;
-            if (alpha <= 0) return;
-            AndroidUtilities.rectTmp.set(getBounds());
-            canvas.save();
-            final float s = bounce.getScale(0.1f);
-            canvas.scale(s, s, AndroidUtilities.rectTmp.centerX(), AndroidUtilities.rectTmp.centerY());
-            final int wasAlpha = backgroundPaint.getAlpha();
-            backgroundPaint.setAlpha((int) (wasAlpha * alpha));
-            canvas.drawRoundRect(AndroidUtilities.rectTmp, dp(20), dp(20), backgroundPaint);
-            backgroundPaint.setAlpha(wasAlpha);
-            textDrawable.setTextColor(textColor);
-            textDrawable.setAlpha((int) (0xFF * alpha));
-            textDrawable.setBounds((int) AndroidUtilities.rectTmp.left, (int) AndroidUtilities.rectTmp.top, (int) AndroidUtilities.rectTmp.right, (int) AndroidUtilities.rectTmp.bottom);
-            textDrawable.draw(canvas);
-            canvas.restore();
-        }
-
-        private float alpha = 1f, alpha2 = 1f;
-        @Override
-        public void setAlpha(int alpha) {
-            this.alpha = alpha / 255f;
-            invalidateSelf();
-        }
-
-        public void setAlpha2(float alpha) {
-            this.alpha2 = alpha;
-            invalidateSelf();
-        }
-
-        @Override
-        public void setColorFilter(@Nullable ColorFilter colorFilter) {
-
-        }
-
-        @Override
-        public int getIntrinsicWidth() {
-            return (int) (textDrawable.getAnimateToWidth() + dp(11));
-        }
-
-        @Override
-        public int getIntrinsicHeight() {
-            return dp(17.33f);
-        }
-
-        @Override
-        public int getOpacity() {
-            return PixelFormat.TRANSPARENT;
-        }
-
-        private boolean pressed;
-        private final ButtonBounce bounce = new ButtonBounce(null) {
-            @Override
-            public void invalidate() {
-                invalidateSelf();
-            }
-        };
-
-        @Override
-        public void setPressed(boolean pressed) {
-            bounce.setPressed(pressed);
-            this.pressed = pressed;
-        }
-
-        @Override
-        public boolean isPressed() {
-            return pressed;
-        }
-
-        private View view;
-        public void setView(View view) {
-            this.view = view;
-        }
     }
 
     public void setLoadingSpan(CharacterStyle span) {
@@ -11108,8 +10969,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             }
         });
     }
-
-    private ProfileBirthdayEffect birthdayEffect;
 
     private void createBirthdayEffect() {
         if (fragmentView == null || !fullyVisible || birthdayFetcher == null || getContext() == null)
@@ -11161,7 +11020,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 //                        }
 //                    } else {
             try {
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(String.format(Locale.US, domain + "?q=" + userInfo.business_location.address )));
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(String.format(Locale.US, domain + "?q=" + userInfo.business_location.address)));
                 getParentActivity().startActivity(intent);
             } catch (Exception e) {
                 FileLog.e(e);
@@ -11236,7 +11095,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     TL_account.updateBusinessWorkHours req = new TL_account.updateBusinessWorkHours();
                     if (userFull != null) {
                         userFull.business_work_hours = null;
-                        userFull.flags2 &=~ 1;
+                        userFull.flags2 &= ~1;
                     }
                     getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
                         if (err != null) {
@@ -11264,7 +11123,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     TL_account.updateBusinessLocation req = new TL_account.updateBusinessLocation();
                     if (userFull != null) {
                         userFull.business_location = null;
-                        userFull.flags2 &=~ 2;
+                        userFull.flags2 &= ~2;
                     }
                     getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
                         if (err != null) {
@@ -11312,7 +11171,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         } else {
                             if (userFull != null) {
                                 if (oldBirthday == null) {
-                                    userFull.flags2 &=~ 32;
+                                    userFull.flags2 &= ~32;
                                 } else {
                                     userFull.flags2 |= 32;
                                 }
@@ -11322,17 +11181,17 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                             if (err != null && err.text != null && err.text.startsWith("FLOOD_WAIT_")) {
                                 if (getContext() != null) {
                                     showDialog(
-                                        new AlertDialog.Builder(getContext(), resourceProvider)
-                                            .setTitle(getString(R.string.PrivacyBirthdayTooOftenTitle))
-                                            .setMessage(getString(R.string.PrivacyBirthdayTooOftenMessage))
-                                            .setPositiveButton(getString(R.string.OK), null)
-                                            .create()
+                                            new AlertDialog.Builder(getContext(), resourceProvider)
+                                                    .setTitle(getString(R.string.PrivacyBirthdayTooOftenTitle))
+                                                    .setMessage(getString(R.string.PrivacyBirthdayTooOftenMessage))
+                                                    .setPositiveButton(getString(R.string.OK), null)
+                                                    .create()
                                     );
                                 }
                             } else {
                                 BulletinFactory.of(ProfileActivity.this)
-                                    .createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.UnknownError))
-                                    .show();
+                                        .createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.UnknownError))
+                                        .show();
                             }
                         }
                     }), ConnectionsManager.RequestFlagDoNotWaitFloodWait);
@@ -11351,7 +11210,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     TL_account.updateBirthday req = new TL_account.updateBirthday();
                     if (userFull != null) {
                         userFull.birthday = null;
-                        userFull.flags2 &=~ 32;
+                        userFull.flags2 &= ~32;
                     }
                     getMessagesController().invalidateContentSettings();
                     getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
@@ -11387,7 +11246,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     if (userFull != null) {
                         userFull.personal_channel_id = 0;
                         userFull.personal_channel_message = 0;
-                        userFull.flags2 &=~ 64;
+                        userFull.flags2 &= ~64;
                     }
                     getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
                         if (err != null) {
@@ -11436,7 +11295,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             lockIcon.setColorFilter(new PorterDuffColorFilter(ColorUtils.blendARGB(Color.WHITE, Color.BLACK, 0.5f), PorterDuff.Mode.MULTIPLY));
             CombinedDrawable combinedDrawable = new CombinedDrawable(icon, lockIcon, dp(1), -dp(1)) {
                 @Override
-                public void setColorFilter(ColorFilter colorFilter) {}
+                public void setColorFilter(ColorFilter colorFilter) {
+                }
             };
             editColorItem.setIcon(combinedDrawable);
         }
@@ -11454,16 +11314,11 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return true;
     }
 
-
-    private HintView2 collectibleHint;
-    private int collectibleHintBackgroundColor;
-    private Boolean collectibleHintVisible;
-    private TLRPC.TL_emojiStatusCollectible collectibleStatus;
-
     public void setCollectibleGiftStatus(TLRPC.TL_emojiStatusCollectible status) {
         if (avatarContainer2 == null) return;
         if (collectibleStatus == status) return;
-        if (collectibleStatus != null && status != null && collectibleStatus.collectible_id == status.collectible_id) return;
+        if (collectibleStatus != null && status != null && collectibleStatus.collectible_id == status.collectible_id)
+            return;
         collectibleStatus = status;
         if (collectibleHint != null) {
             collectibleHint.hide();
@@ -11506,6 +11361,125 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         final boolean visible = extraHeight >= dp(82);
         if (collectibleHintVisible == null || collectibleHintVisible != visible) {
             collectibleHint.animate().alpha((collectibleHintVisible = visible) ? 1.0f : 0.0f).setInterpolator(CubicBezierInterpolator.EASE_OUT).setDuration(200).start();
+        }
+    }
+
+    public static class ShowDrawable extends Drawable implements SimpleTextView.PressableDrawable {
+
+        public final AnimatedTextView.AnimatedTextDrawable textDrawable;
+        public final Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final ButtonBounce bounce = new ButtonBounce(null) {
+            @Override
+            public void invalidate() {
+                invalidateSelf();
+            }
+        };
+        private int textColor;
+        private float alpha = 1f, alpha2 = 1f;
+        private boolean pressed;
+        private View view;
+
+        public ShowDrawable(String string) {
+            textDrawable = new AnimatedTextView.AnimatedTextDrawable();
+            textDrawable.setCallback(new Callback() {
+                @Override
+                public void invalidateDrawable(@NonNull Drawable who) {
+                    if (view != null) {
+                        view.invalidate();
+                    }
+                }
+
+                @Override
+                public void scheduleDrawable(@NonNull Drawable who, @NonNull Runnable what, long when) {
+                }
+
+                @Override
+                public void unscheduleDrawable(@NonNull Drawable who, @NonNull Runnable what) {
+                }
+            });
+            textDrawable.setText(string);
+            textDrawable.setTextSize(dp(11));
+            textDrawable.setGravity(Gravity.CENTER);
+            backgroundPaint.setColor(0x1f000000);
+        }
+
+        public void setBackgroundColor(int backgroundColor) {
+            if (backgroundPaint.getColor() != backgroundColor) {
+                backgroundPaint.setColor(backgroundColor);
+                invalidateSelf();
+            }
+        }
+
+        public void setTextColor(int textColor) {
+            if (this.textColor != textColor) {
+                this.textColor = textColor;
+                invalidateSelf();
+            }
+        }
+
+        @Override
+        public void draw(@NonNull Canvas canvas) {
+            final float alpha = this.alpha * this.alpha2;
+            if (alpha <= 0) return;
+            AndroidUtilities.rectTmp.set(getBounds());
+            canvas.save();
+            final float s = bounce.getScale(0.1f);
+            canvas.scale(s, s, AndroidUtilities.rectTmp.centerX(), AndroidUtilities.rectTmp.centerY());
+            final int wasAlpha = backgroundPaint.getAlpha();
+            backgroundPaint.setAlpha((int) (wasAlpha * alpha));
+            canvas.drawRoundRect(AndroidUtilities.rectTmp, dp(20), dp(20), backgroundPaint);
+            backgroundPaint.setAlpha(wasAlpha);
+            textDrawable.setTextColor(textColor);
+            textDrawable.setAlpha((int) (0xFF * alpha));
+            textDrawable.setBounds((int) AndroidUtilities.rectTmp.left, (int) AndroidUtilities.rectTmp.top, (int) AndroidUtilities.rectTmp.right, (int) AndroidUtilities.rectTmp.bottom);
+            textDrawable.draw(canvas);
+            canvas.restore();
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+            this.alpha = alpha / 255f;
+            invalidateSelf();
+        }
+
+        public void setAlpha2(float alpha) {
+            this.alpha2 = alpha;
+            invalidateSelf();
+        }
+
+        @Override
+        public void setColorFilter(@Nullable ColorFilter colorFilter) {
+
+        }
+
+        @Override
+        public int getIntrinsicWidth() {
+            return (int) (textDrawable.getAnimateToWidth() + dp(11));
+        }
+
+        @Override
+        public int getIntrinsicHeight() {
+            return dp(17.33f);
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSPARENT;
+        }
+
+        @Override
+        public boolean isPressed() {
+            return pressed;
+        }
+
+        @Override
+        public void setPressed(boolean pressed) {
+            bounce.setPressed(pressed);
+            this.pressed = pressed;
+        }
+
+        public void setView(View view) {
+            this.view = view;
         }
     }
 

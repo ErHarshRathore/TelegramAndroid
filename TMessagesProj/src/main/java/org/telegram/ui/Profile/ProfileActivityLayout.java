@@ -4,7 +4,6 @@ package org.telegram.ui.Profile;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;

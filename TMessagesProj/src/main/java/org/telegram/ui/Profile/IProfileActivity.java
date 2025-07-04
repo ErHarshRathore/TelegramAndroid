@@ -15,4 +15,6 @@ public interface IProfileActivity {
     int getCurrentAccount();
 
     long getDialogId();
+
+    boolean isMyProfile();
 }

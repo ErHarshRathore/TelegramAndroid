@@ -76,6 +76,7 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
+import android.util.Log;
 import android.util.Property;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
@@ -3837,6 +3838,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         listView.setLayoutManager(layoutManager);
         listView.setGlowColor(0);
         listView.setAdapter(listAdapter);
+        Log.i("TagHarsh", "ProfileActivity::onCreate: listAdapterCount=" + listAdapter.getItemCount());
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
         listView.setOnItemClickListener((view, position, x, y) -> {
             if (getParentActivity() == null) {
@@ -5812,6 +5814,11 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         } else {
             return -chatId;
         }
+    }
+
+    @Override
+    public boolean isMyProfile() {
+        return myProfile;
     }
 
     public void getEmojiStatusLocation(Rect rect) {
@@ -11046,6 +11053,16 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         avatarProgressView.setProgress(0.0f);
     }
 
+    @Override
+    public void didUploadFailed() {
+        ImageUpdater.ImageUpdaterDelegate.super.didUploadFailed();
+    }
+
+    @Override
+    public boolean canFinishFragment() {
+        return ImageUpdater.ImageUpdaterDelegate.super.canFinishFragment();
+    }
+
     int avatarUploadingRequest;
     @Override
     public void didUploadPhoto(final TLRPC.InputFile photo, final TLRPC.InputFile video, double videoStartTimestamp, String videoPath, TLRPC.PhotoSize bigSize, final TLRPC.PhotoSize smallSize, boolean isVideo, TLRPC.VideoSize emojiMarkup) {
@@ -11154,6 +11171,21 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             }
             actionBar.createMenu().requestLayout();
         });
+    }
+
+    @Override
+    public PhotoViewer.PlaceProviderObject getCloseIntoObject() {
+        return ImageUpdater.ImageUpdaterDelegate.super.getCloseIntoObject();
+    }
+
+    @Override
+    public boolean supportsBulletin() {
+        return ImageUpdater.ImageUpdaterDelegate.super.supportsBulletin();
+    }
+
+    @Override
+    public String getInitialSearchString() {
+        return ImageUpdater.ImageUpdaterDelegate.super.getInitialSearchString();
     }
 
     private void showAvatarProgress(boolean show, boolean animated) {

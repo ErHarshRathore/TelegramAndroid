@@ -39,6 +39,7 @@ import android.transition.TransitionManager;
 import android.transition.TransitionSet;
 import android.transition.TransitionValues;
 import android.transition.Visibility;
+import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.util.TypedValue;
@@ -132,6 +133,7 @@ import org.telegram.ui.Gifts.ProfileGiftsContainer;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.PremiumPreviewFragment;
+import org.telegram.ui.Profile.IProfileActivity;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stories.StoriesController;
@@ -144,6 +146,7 @@ import org.telegram.ui.Stories.recorder.StoryRecorder;
 import org.telegram.ui.TopicsFragment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -438,7 +441,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 profileActivity.getContext(),
                 dialogCell.getDialogId(),
                 StoriesListPlaceProvider.of((RecyclerListView) dialogCell.getParent())
-                    .addBottomClip(profileActivity instanceof ProfileActivity && ((ProfileActivity) profileActivity).myProfile ? dp(68) : 0)
+                    .addBottomClip(profileActivity instanceof IProfileActivity && ((IProfileActivity) profileActivity).isMyProfile() ? dp(68) : 0)
             );
         }
     }
@@ -761,8 +764,29 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                         }
                     });
                 }
-            } else if (fragment instanceof ProfileActivity) {
+            } else if (fragment instanceof org.telegram.ui.ProfileActivity) {
                 ProfileActivity profileActivity = (ProfileActivity) fragment;
+                if (profileActivity.saved) {
+                    dialogId = profileActivity.getUserConfig().getClientUserId();
+                    topicId = profileActivity.getDialogId();
+                } else {
+                    dialogId = profileActivity.getDialogId();
+                    topicId = profileActivity.getTopicId();
+
+                    if (dialogId != fragment.getUserConfig().getClientUserId()) {
+                        fragment.getMessagesController().getSavedMessagesController().hasSavedMessages(dialogId, hasMessages -> {
+                            this.hasSavedMessages = hasMessages;
+                            this.checkedHasSavedMessages = true;
+                            if (hasSavedMessages) {
+                                for (int a = 0, N = delegates.size(); a < N; a++) {
+                                    delegates.get(a).mediaCountUpdated();
+                                }
+                            }
+                        });
+                    }
+                }
+            } else if (fragment instanceof org.telegram.ui.Profile.ProfileActivity) {
+                org.telegram.ui.Profile.ProfileActivity profileActivity = (org.telegram.ui.Profile.ProfileActivity) fragment;
                 if (profileActivity.saved) {
                     dialogId = profileActivity.getUserConfig().getClientUserId();
                     topicId = profileActivity.getDialogId();
@@ -1500,6 +1524,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         }
         dialog_id = did;
 
+        Log.i("TagHarsh", "SharedMediaLayout: initialTab = " + initialTab + " data = " + Arrays.toString(sharedMediaData));
         for (int a = 0; a < sharedMediaData.length; a++) {
             sharedMediaData[a] = new SharedMediaData();
             sharedMediaData[a].max_id[0] = DialogObject.isEncryptedDialog(dialog_id) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
@@ -2439,7 +2464,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                     return startedTrackingX;
                 }
             };
-        } else if (profileActivity instanceof ProfileActivity) {
+        } else if (profileActivity instanceof IProfileActivity) {
             saveItem = new TextView(context);
             saveItem.setText(getString(R.string.Save).toUpperCase());
             saveItem.setTypeface(AndroidUtilities.bold());
@@ -2458,7 +2483,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             saveItem.setScaleX(0.4f);
             saveItem.setScaleY(0.4f);
 
-            giftsContainer = new ProfileGiftsContainer(profileActivity, context, profileActivity.getCurrentAccount(), ((ProfileActivity) profileActivity).getDialogId(), resourcesProvider) {
+            giftsContainer = new ProfileGiftsContainer(profileActivity, context, profileActivity.getCurrentAccount(), ((IProfileActivity) profileActivity).getDialogId(), resourcesProvider) {
                 @Override
                 protected int processColor(int color) {
                     return SharedMediaLayout.this.processColor(color);

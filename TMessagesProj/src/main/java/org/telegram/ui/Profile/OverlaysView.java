@@ -23,17 +23,14 @@ import java.util.Arrays;
 
 class OverlaysView extends View implements ProfileGalleryView.Callback {
 
+    final ValueAnimator animator;
     private final ProfileActivity parent;
-    
     private final int statusBarHeight;
-
     private final Rect topOverlayRect = new Rect();
     private final Rect bottomOverlayRect = new Rect();
     private final RectF rect = new RectF();
-
     private final GradientDrawable topOverlayGradient;
     private final GradientDrawable bottomOverlayGradient;
-    final ValueAnimator animator;
     private final float[] animatorValues = new float[]{0f, 1f};
     private final Paint backgroundPaint;
     private final Paint barPaint;
@@ -60,7 +57,7 @@ class OverlaysView extends View implements ProfileGalleryView.Callback {
         super(parent.getContext());
         this.parent = parent;
         setVisibility(GONE);
-        
+
         statusBarHeight = parent.getActionBar().getOccupyStatusBar() && !parent.isInBubbleMode() ? AndroidUtilities.statusBarHeight : 0;
 
         barPaint = new Paint(Paint.ANTI_ALIAS_FLAG);

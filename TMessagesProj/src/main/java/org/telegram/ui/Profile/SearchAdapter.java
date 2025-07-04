@@ -75,90 +75,26 @@ import java.util.Set;
 
 class SearchAdapter extends RecyclerListView.SelectionAdapter {
 
-
-    class SearchResult {
-
-        private String searchTitle;
-        private Runnable openRunnable;
-        private String rowName;
-        private String[] path;
-        private int iconResId;
-        private int guid;
-        private int num;
-
-        public SearchResult(int g, String search, int icon, Runnable open) {
-            this(g, search, null, null, null, icon, open);
-        }
-
-        public SearchResult(int g, String search, String pathArg1, int icon, Runnable open) {
-            this(g, search, null, pathArg1, null, icon, open);
-        }
-
-        public SearchResult(int g, String search, String row, String pathArg1, int icon, Runnable open) {
-            this(g, search, row, pathArg1, null, icon, open);
-        }
-
-        public SearchResult(int g, String search, String row, String pathArg1, String pathArg2, int icon, Runnable open) {
-            Log.d("TagHarsh", "SearchResult::init... - " + g);
-            guid = g;
-            searchTitle = search;
-            rowName = row;
-            openRunnable = open;
-            iconResId = icon;
-            if (pathArg1 != null && pathArg2 != null) {
-                path = new String[]{pathArg1, pathArg2};
-            } else if (pathArg1 != null) {
-                path = new String[]{pathArg1};
-            }
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!(obj instanceof SearchAdapter.SearchResult)) {
-                return false;
-            }
-            SearchAdapter.SearchResult result = (SearchAdapter.SearchResult) obj;
-            return guid == result.guid;
-        }
-
-        @Override
-        public String toString() {
-            SerializedData data = new SerializedData();
-            data.writeInt32(num);
-            data.writeInt32(1);
-            data.writeInt32(guid);
-            return Utilities.bytesToHex(data.toByteArray());
-        }
-
-        void open() {
-            openRunnable.run();
-            AndroidUtilities.scrollToFragmentRow(parent.getParentLayout(), rowName);
-        }
-    }
-
     private final ProfileActivity parent;
+    private final Context mContext;
     SearchAdapter.SearchResult[] searchArray;
     ArrayList<MessagesController.FaqSearchResult> faqSearchArray = new ArrayList<>();
-
-    private Context mContext;
-    private ArrayList<CharSequence> resultNames = new ArrayList<>();
     ArrayList<SearchAdapter.SearchResult> searchResults = new ArrayList<>();
     ArrayList<MessagesController.FaqSearchResult> faqSearchResults = new ArrayList<>();
     ArrayList<Object> recentSearches = new ArrayList<>();
-    private boolean searchWas;
-    private Runnable searchRunnable;
     String lastSearchString;
     TLRPC.WebPage faqWebPage;
+    private ArrayList<CharSequence> resultNames = new ArrayList<>();
+    private boolean searchWas;
+    private Runnable searchRunnable;
     private boolean loadingFaqPage;
 
     public SearchAdapter(ProfileActivity parent) {
-        Log.d("TagHarsh", "SearchAdapter::init creating...");
         this.parent = parent;
         mContext = parent.getContext();
         searchArray = onCreateSearchArray();
 
         updateSearchArray();
-        Log.d("TagHarsh", "SearchAdapter::init created");
     }
 
     void updateSearchArray() {
@@ -834,5 +770,64 @@ class SearchAdapter extends RecyclerListView.SelectionAdapter {
 
     public boolean isSearchWas() {
         return searchWas;
+    }
+
+    class SearchResult {
+
+        private final String searchTitle;
+        private final Runnable openRunnable;
+        private final String rowName;
+        private final int iconResId;
+        private final int guid;
+        private String[] path;
+        private int num;
+
+        public SearchResult(int g, String search, int icon, Runnable open) {
+            this(g, search, null, null, null, icon, open);
+        }
+
+        public SearchResult(int g, String search, String pathArg1, int icon, Runnable open) {
+            this(g, search, null, pathArg1, null, icon, open);
+        }
+
+        public SearchResult(int g, String search, String row, String pathArg1, int icon, Runnable open) {
+            this(g, search, row, pathArg1, null, icon, open);
+        }
+
+        public SearchResult(int g, String search, String row, String pathArg1, String pathArg2, int icon, Runnable open) {
+            guid = g;
+            searchTitle = search;
+            rowName = row;
+            openRunnable = open;
+            iconResId = icon;
+            if (pathArg1 != null && pathArg2 != null) {
+                path = new String[]{pathArg1, pathArg2};
+            } else if (pathArg1 != null) {
+                path = new String[]{pathArg1};
+            }
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof SearchAdapter.SearchResult)) {
+                return false;
+            }
+            SearchAdapter.SearchResult result = (SearchAdapter.SearchResult) obj;
+            return guid == result.guid;
+        }
+
+        @Override
+        public String toString() {
+            SerializedData data = new SerializedData();
+            data.writeInt32(num);
+            data.writeInt32(1);
+            data.writeInt32(guid);
+            return Utilities.bytesToHex(data.toByteArray());
+        }
+
+        void open() {
+            openRunnable.run();
+            AndroidUtilities.scrollToFragmentRow(parent.getParentLayout(), rowName);
+        }
     }
 }

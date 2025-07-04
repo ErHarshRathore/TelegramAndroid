@@ -3,7 +3,6 @@ package org.telegram.ui.Profile;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
 
-import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
@@ -29,10 +28,25 @@ import org.telegram.ui.Stars.StarGiftPatterns;
 
 class TopView extends FrameLayout {
 
-    private int currentColor;
-    private Paint paint = new Paint();
-    
+    public final AnimatedFloat emojiLoadedT = new AnimatedFloat(this, 0, 440, CubicBezierInterpolator.EASE_OUT_QUINT);
+    public final AnimatedFloat emojiFullT = new AnimatedFloat(this, 0, 440, CubicBezierInterpolator.EASE_OUT_QUINT);
+    private final Paint paint = new Paint();
     private final ProfileActivity parent;
+    private final AnimatedFloat hasColorAnimated = new AnimatedFloat(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
+    private final AnimatedColor color1Animated = new AnimatedColor(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
+    private final AnimatedColor color2Animated = new AnimatedColor(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
+    private final Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable emoji = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(this, false, dp(20), AnimatedEmojiDrawable.CACHE_TYPE_ALERT_PREVIEW_STATIC);
+    private final Rect blurBounds = new Rect();
+    public int color1, color2;
+    private int currentColor;
+    private boolean hasColorById;
+    private int backgroundGradientColor1, backgroundGradientColor2, backgroundGradientHeight;
+    private LinearGradient backgroundGradient;
+    private int emojiColor;
+    private boolean hasEmoji;
+    private boolean emojiIsCollectible;
+    private boolean emojiLoaded;
 
     public TopView(ProfileActivity parent) {
         super(parent.getContext());
@@ -56,16 +70,6 @@ class TopView extends FrameLayout {
             }
         }
     }
-
-    private boolean hasColorById;
-    private final AnimatedFloat hasColorAnimated = new AnimatedFloat(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
-    public int color1, color2;
-    private final AnimatedColor color1Animated = new AnimatedColor(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
-    private final AnimatedColor color2Animated = new AnimatedColor(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
-
-    private int backgroundGradientColor1, backgroundGradientColor2, backgroundGradientHeight;
-    private LinearGradient backgroundGradient;
-    private final Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     public void setBackgroundColorId(MessagesController.PeerColor peerColor, boolean animated) {
         if (peerColor != null) {
@@ -96,9 +100,6 @@ class TopView extends FrameLayout {
         invalidate();
     }
 
-    private int emojiColor;
-    private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable emoji = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(this, false, dp(20), AnimatedEmojiDrawable.CACHE_TYPE_ALERT_PREVIEW_STATIC);
-
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -111,11 +112,6 @@ class TopView extends FrameLayout {
         emoji.detach();
     }
 
-    public final AnimatedFloat emojiLoadedT = new AnimatedFloat(this, 0, 440, CubicBezierInterpolator.EASE_OUT_QUINT);
-    public final AnimatedFloat emojiFullT = new AnimatedFloat(this, 0, 440, CubicBezierInterpolator.EASE_OUT_QUINT);
-
-    private boolean hasEmoji;
-    private boolean emojiIsCollectible;
     public void setBackgroundEmojiId(long emojiId, boolean isCollectible, boolean animated) {
         emoji.set(emojiId, animated);
         emoji.setColor(emojiColor);
@@ -127,7 +123,6 @@ class TopView extends FrameLayout {
         invalidate();
     }
 
-    private boolean emojiLoaded;
     private boolean isEmojiLoaded() {
         if (emojiLoaded) {
             return true;
@@ -166,7 +161,7 @@ class TopView extends FrameLayout {
             final int color2 = color2Animated.set(this.color2);
             final int gradientHeight = AndroidUtilities.statusBarHeight + AndroidUtilities.dp(144);
             if (backgroundGradient == null || backgroundGradientColor1 != color1 || backgroundGradientColor2 != color2 || backgroundGradientHeight != gradientHeight) {
-                backgroundGradient = new LinearGradient(0, 0, 0, backgroundGradientHeight = gradientHeight, new int[] { backgroundGradientColor2 = color2, backgroundGradientColor1 = color1 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
+                backgroundGradient = new LinearGradient(0, 0, 0, backgroundGradientHeight = gradientHeight, new int[]{backgroundGradientColor2 = color2, backgroundGradientColor1 = color1}, new float[]{0, 1}, Shader.TileMode.CLAMP);
                 backgroundPaint.setShader(backgroundGradient);
             }
             final float progressToGradient = (parent.playProfileAnimation == 0 ? 1f : parent.getAvatarAnimationProgress()) * hasColorAnimated.set(hasColorById);
@@ -210,5 +205,4 @@ class TopView extends FrameLayout {
             parent.getParentLayout().drawHeaderShadow(canvas, (int) (parent.headerShadowAlpha * 255), (int) v);
         }
     }
-    private Rect blurBounds = new Rect();
 }
