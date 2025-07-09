@@ -60,6 +60,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.CharacterStyle;
 import android.text.style.ForegroundColorSpan;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Property;
 import android.util.SparseArray;
@@ -386,8 +387,63 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     final SimpleTextView[] nameTextView = new SimpleTextView[2];
     final SimpleTextView[] onlineTextView = new SimpleTextView[4];
     final SparseIntArray adaptedColors = new SparseIntArray();
+    // Private Instance Fields
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[] botVerificationDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[2];
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[] emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[2];
+    private final PhotoViewer.PhotoViewerProvider provider = new PhotoViewer.EmptyPhotoViewerProvider() {
+
+        @Override
+        public PhotoViewer.PlaceProviderObject getPlaceForPhoto(MessageObject messageObject, TLRPC.FileLocation fileLocation, int index, boolean needPreview, boolean closing) {
+            if (fileLocation == null) {
+                return null;
+            }
+
+            TLRPC.FileLocation photoBig = null;
+            if (userId != 0) {
+                TLRPC.User user = getMessagesController().getUser(userId);
+                if (user != null && user.photo != null && user.photo.photo_big != null) {
+                    photoBig = user.photo.photo_big;
+                }
+            } else if (chatId != 0) {
+                TLRPC.Chat chat = getMessagesController().getChat(chatId);
+                if (chat != null && chat.photo != null && chat.photo.photo_big != null) {
+                    photoBig = chat.photo.photo_big;
+                }
+            }
+
+            if (photoBig != null && photoBig.local_id == fileLocation.local_id && photoBig.volume_id == fileLocation.volume_id && photoBig.dc_id == fileLocation.dc_id) {
+                int[] coords = new int[2];
+                avatarImage.getLocationInWindow(coords);
+                PhotoViewer.PlaceProviderObject object = new PhotoViewer.PlaceProviderObject();
+                object.viewX = coords[0];
+                object.viewY = coords[1] - (Build.VERSION.SDK_INT >= 21 ? 0 : AndroidUtilities.statusBarHeight);
+                object.parentView = avatarImage;
+                object.imageReceiver = avatarImage.getImageReceiver();
+                if (userId != 0) {
+                    object.dialogId = userId;
+                } else if (chatId != 0) {
+                    object.dialogId = -chatId;
+                }
+                object.thumb = object.imageReceiver.getBitmapSafe();
+                object.size = -1;
+                object.radius = avatarImage.getImageReceiver().getRoundRadius(true);
+                object.scale = avatarContainer.getScaleX();
+                object.canEdit = userId == getUserConfig().clientUserId;
+                return object;
+            }
+            return null;
+        }
+
+        @Override
+        public void willHidePhotoViewer() {
+            avatarImage.getImageReceiver().setVisible(true, true);
+        }
+
+        @Override
+        public void openPhotoForEdit(String file, String thumb, boolean isVideo) {
+            imageUpdater.openPhotoForEdit(file, thumb, 0, isVideo);
+        }
+    };
     // Public Fields
     public boolean saved;
     public SharedMediaLayout sharedMediaLayout;
@@ -619,61 +675,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     ImageLocation prevLoadedImageLocation;
     ImageLocation uploadingImageLocation;
     ImageUpdater imageUpdater;
-    // Private Instance Fields
-    private final PhotoViewer.PhotoViewerProvider provider = new PhotoViewer.EmptyPhotoViewerProvider() {
-
-        @Override
-        public PhotoViewer.PlaceProviderObject getPlaceForPhoto(MessageObject messageObject, TLRPC.FileLocation fileLocation, int index, boolean needPreview, boolean closing) {
-            if (fileLocation == null) {
-                return null;
-            }
-
-            TLRPC.FileLocation photoBig = null;
-            if (userId != 0) {
-                TLRPC.User user = getMessagesController().getUser(userId);
-                if (user != null && user.photo != null && user.photo.photo_big != null) {
-                    photoBig = user.photo.photo_big;
-                }
-            } else if (chatId != 0) {
-                TLRPC.Chat chat = getMessagesController().getChat(chatId);
-                if (chat != null && chat.photo != null && chat.photo.photo_big != null) {
-                    photoBig = chat.photo.photo_big;
-                }
-            }
-
-            if (photoBig != null && photoBig.local_id == fileLocation.local_id && photoBig.volume_id == fileLocation.volume_id && photoBig.dc_id == fileLocation.dc_id) {
-                int[] coords = new int[2];
-                avatarImage.getLocationInWindow(coords);
-                PhotoViewer.PlaceProviderObject object = new PhotoViewer.PlaceProviderObject();
-                object.viewX = coords[0];
-                object.viewY = coords[1] - (Build.VERSION.SDK_INT >= 21 ? 0 : AndroidUtilities.statusBarHeight);
-                object.parentView = avatarImage;
-                object.imageReceiver = avatarImage.getImageReceiver();
-                if (userId != 0) {
-                    object.dialogId = userId;
-                } else if (chatId != 0) {
-                    object.dialogId = -chatId;
-                }
-                object.thumb = object.imageReceiver.getBitmapSafe();
-                object.size = -1;
-                object.radius = avatarImage.getImageReceiver().getRoundRadius(true);
-                object.scale = avatarContainer.getScaleX();
-                object.canEdit = userId == getUserConfig().clientUserId;
-                return object;
-            }
-            return null;
-        }
-
-        @Override
-        public void willHidePhotoViewer() {
-            avatarImage.getImageReceiver().setVisible(true, true);
-        }
-
-        @Override
-        public void openPhotoForEdit(String file, String thumb, boolean isVideo) {
-            imageUpdater.openPhotoForEdit(file, thumb, 0, isVideo);
-        }
-    };
     ImageView starBgItem;
     ImageView starFgItem;
     ImageView timeItem;
@@ -685,6 +686,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     OverlaysView overlaysView;
     PagerIndicatorView avatarsViewPagerIndicatorView;
     PinchToZoomHelper pinchToZoomHelper;
+    ProfileActivityLayout profileActivityLayout;
     ProfileBirthdayEffect.BirthdayEffectFetcher birthdayFetcher;
     ProfileChannelCell.ChannelMessageFetcher profileChannelMessageFetcher;
     ProfileGalleryView avatarsViewPager;
@@ -998,6 +1000,30 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return topicId;
     }
 
+    /**
+     * Called when the fragment is being created.
+     * This method initializes various fields based on the arguments passed to the fragment.
+     * It also sets up observers for notifications and loads necessary data.
+     *
+     * The method follows these steps:<br/>
+     * 1. Argument Parsing: Retrieves and initializes various member variables from the fragment's arguments (e.g., `userId`, `chatId`, `topicId`, `saved`, `openSimilar`, `isTopic`, `banFromGroup`, `reportReactionMessageId`, `reportReactionFromDialogId`, `showAddToContacts`, `vcardPhone`, `vcardFirstName`, `vcardLastName`, `reportSpam`, `myProfile`, `openGifts`, `openCommonChats`).
+     * 2. Expand Photo Check: Checks if `expandPhoto` argument is true and updates `currentExpandAnimatorValue` and `needSendMessage` accordingly.
+     * 3. User Profile Initialization (if `userId` is not 0):
+     *    a. Retrieves `dialogId` from arguments. If `dialogId` is not 0, fetches the corresponding encrypted chat.
+     *    b. Invalidates `flagSecure` if it exists.
+     *    c. Fetches the `TLRPC.User` object. If the user is null, returns `false`.
+     *    d. **Notification Observers:** Adds observers for various `NotificationCenter` events related to contacts, suggestions, encrypted chats, blocked users, bot info, user info, and privacy rules. Also adds a global observer for `reloadInterface`.
+     *    e. Checks if the user is blocked.
+     *    f. If the user is a bot, sets `isBot` to true and loads bot info.
+     *    g. Loads the full user information.
+     *    h. Sets `participantsMap` to null.
+     *    i. **Self Profile Specifics:** If the current user is viewing their own profile:
+     *        i. Initializes an `ImageUpdater`.
+     *        ii. Checks for featured stickers.
+     *        iii. Loads suggested filters.
+     *        iv. Loads user info for the current user.
+     *    j. Retrieves `actionBarAnimationColorFrom` from arguments.
+     */
     @Override
     public boolean onFragmentCreate() {
         userId = arguments.getLong("user_id", 0);
@@ -1066,6 +1092,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 getMessagesController().loadUserInfo(getUserConfig().getCurrentUser(), true, classGuid);
             }
             actionBarAnimationColorFrom = arguments.getInt("actionBarColor", 0);
+            Log.i("TagHarsh", "UserProfile - uid - " + user.id + " - isBot - " + user.bot);
         } else if (chatId != 0) {
             currentChat = getMessagesController().getChat(chatId);
             if (currentChat == null) {
@@ -1112,6 +1139,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             }
 
             updateExceptions();
+
+            Log.i("TagHarsh", "GroupProfile - isMegaGrp - " + currentChat.megagroup + " - isVerified - " + currentChat.verified);
         } else {
             return false;
         }
@@ -1370,6 +1399,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         searchMode = false;
         hasOwnBackground = true;
         extraHeight = AndroidUtilities.dp(88f);
+
+        profileActivityLayout = new ProfileActivityLayout(context);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(final int id) {
@@ -2982,6 +3013,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         listView.setAdapter(listAdapter);
         Log.i("TagHarsh", "ProfileActivity::onCreate: listAdapterCount=" + listAdapter.getItemCount());
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
+
         listView.setOnItemClickListener((view, position, x, y) -> {
             if (getParentActivity() == null) {
                 return;
@@ -3969,6 +4001,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         animatedStatusView.setPivotY(AndroidUtilities.dp(30));
 
         avatarContainer = new FrameLayout(context);
+
+
         avatarContainer2 = new FrameLayout(context) {
 
             CanvasButton canvasButton;
@@ -4048,6 +4082,12 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 updateCollectibleHint();
             }
         };
+        // TODO @Harsh - remove the custom layer
+//        FrameLayout customOverlay3 = new FrameLayout(context);
+//        customOverlay3.setBackgroundColor(0x7700ff00);
+//        avatarContainer2.addView(customOverlay3, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
+
+
         fallbackImage = new ImageReceiver(avatarContainer2);
         fallbackImage.setRoundRadius(AndroidUtilities.dp(11));
         AndroidUtilities.updateViewVisibilityAnimated(avatarContainer2, true, 1f, false);
@@ -4083,6 +4123,11 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         avatarImage.setPivotX(0);
         avatarImage.setPivotY(0);
         avatarContainer.addView(avatarImage, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+//        // TODO @Harsh - remove the custom layer
+        FrameLayout customOverlay2 = new FrameLayout(context);
+        customOverlay2.setBackgroundColor(0x7700ffff);
+        avatarContainer.addView(customOverlay2, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
+
         avatarImage.setOnClickListener(v -> {
             if (avatarBig != null) {
                 return;
@@ -4259,8 +4304,10 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             };
             if (a == 1) {
                 nameTextView[a].setTextColor(getThemedColor(Theme.key_profile_title));
+                nameTextView[a].setBackgroundColor(0xffff0000);
             } else {
                 nameTextView[a].setTextColor(getThemedColor(Theme.key_actionBarDefaultTitle));
+                nameTextView[a].setBackgroundColor(0xff0000ff);
             }
             nameTextView[a].setPadding(0, AndroidUtilities.dp(6), 0, AndroidUtilities.dp(a == 0 ? 12 : 4));
             nameTextView[a].setTextSize(18);
@@ -4474,6 +4521,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
         expandAnimator = ValueAnimator.ofFloat(0f, 1f);
         expandAnimator.addUpdateListener(anim -> {
+            Log.i("TagHarsh", "expandAnimator::addUpdateListenerCallback -> " + anim.getAnimatedFraction());
             setAvatarExpandProgress(anim.getAnimatedFraction());
         });
         expandAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
@@ -4609,6 +4657,10 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         if (openGifts || openCommonChats) {
             AndroidUtilities.runOnUIThread(this::scrollToSharedMedia);
         }
+
+
+        // TODO @Harsh - remove the custom layer
+        frameLayout.addView(profileActivityLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
 
         return fragmentView;
     }
@@ -6420,6 +6472,10 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             if (h > AndroidUtilities.dp(88f) || isPulledDown) {
                 expandProgress = Math.max(0f, Math.min(1f, (h - AndroidUtilities.dp(88f)) / (listView.getMeasuredWidth() - newTop - AndroidUtilities.dp(88f))));
                 avatarScale = AndroidUtilities.lerp((42f + 18f) / 42f, (42f + 42f + 18f) / 42f, Math.min(1f, expandProgress * 3f));
+
+                profileActivityLayout.setVerticalScrollOffset(expandProgress);
+                Log.i("TagHarsh", "expandAnimator::needLayout avatarScale0 expandProgress -> " + expandProgress);
+
                 if (storyView != null) {
                     storyView.invalidate();
                 }
@@ -6552,7 +6608,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         avatarsViewPager.setVisibility(View.GONE);
                         expandAnimator.start();
                     }
-
                     avatarContainer.setScaleX(avatarScale);
                     avatarContainer.setScaleY(avatarScale);
 
@@ -6585,6 +6640,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 nameTextView[1].setScaleY(1.67f);
 
                 avatarScale = AndroidUtilities.lerp(1.0f, (42f + 42f + 18f) / 42f, avatarAnimationProgress);
+                Log.i("TagHarsh", "expandAnimator::needLayout avatarScale0 avatarAnimationProgress -> " + avatarAnimationProgress);
+
                 if (storyView != null) {
                     storyView.setExpandProgress(1f);
                 }
@@ -6602,6 +6659,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 starBgItem.setTranslationY(avatarContainer.getY() + AndroidUtilities.dp(24) + extra);
                 starFgItem.setTranslationX(avatarContainer.getX() + AndroidUtilities.dp(28) + extra);
                 starFgItem.setTranslationY(avatarContainer.getY() + AndroidUtilities.dp(24) + extra);
+
+                Log.i("TagHarsh", "expandAnimator::needLayout avatarScale2 -> " + avatarScale);
                 avatarContainer.setScaleX(avatarScale);
                 avatarContainer.setScaleY(avatarScale);
 
@@ -6632,6 +6691,10 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 updateCollectibleHint();
             } else if (extraHeight <= AndroidUtilities.dp(88f)) {
                 avatarScale = (42 + 18 * diff) / 42.0f;
+
+                profileActivityLayout.setVerticalScrollOffset(diff - 1f);
+                Log.i("TagHarsh", "expandAnimator::needLayout avatarScale0 planeDiff -> " + diff);
+
                 if (storyView != null) {
                     storyView.invalidate();
                 }
@@ -6640,6 +6703,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 }
                 float nameScale = 1.0f + 0.12f * diff;
                 if (expandAnimator == null || !expandAnimator.isRunning()) {
+                    Log.i("TagHarsh", "expandAnimator::needLayout avatarScale3 -> " + avatarScale);
                     avatarContainer.setScaleX(avatarScale);
                     avatarContainer.setScaleY(avatarScale);
                     avatarContainer.setTranslationX(avatarX);
