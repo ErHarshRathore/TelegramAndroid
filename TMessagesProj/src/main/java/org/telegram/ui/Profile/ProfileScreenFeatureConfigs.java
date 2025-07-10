@@ -2,8 +2,11 @@ package org.telegram.ui.Profile;
 
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.os.Bundle;
 
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.SharedMediaLayout;
 import org.telegram.ui.ProfileActivity;
@@ -19,7 +22,11 @@ public class ProfileScreenFeatureConfigs {
         return DEFAULT_PROFILE_SCREEN_VERSION;
     }
 
-    static ProfileActivityV2Configs profileActivityV2Configs = new ProfileActivityV2Configs();
+    static ProfileActivityV2Configs profileActivityV2Configs;
+    static ProfileActivityV2Configs getProfileActivityV2Configs(Configuration deviceConfiguration) {
+        return profileActivityV2Configs == null ? profileActivityV2Configs = new ProfileActivityV2Configs(deviceConfiguration) : profileActivityV2Configs;
+    }
+
 
     public static BaseFragment getProfileActivity(Bundle args) {
         BaseFragment instance;
@@ -66,6 +73,31 @@ public class ProfileScreenFeatureConfigs {
     }
 
     static class ProfileActivityV2Configs {
-        int UI_PROFILE_SCROLL_ANIMATION_MIDDLE_STATE_AVATAR_SIZE_DP = 144;
+        private Configuration configuration;
+
+        int uiScrollStateMiddleAvatarSizeDP = AndroidUtilities.dp(120f);
+        int uiScrollStateMiddleAvatarTopMarginDP = AndroidUtilities.dp(50f);
+
+        ProfileActivityV2Configs(Configuration deviceConfiguration) {
+            setConfiguration(deviceConfiguration);
+        }
+
+        void setConfiguration(Configuration configuration) {
+            this.configuration = configuration;
+            onUpdateConfiguration();
+        }
+
+        private void onUpdateConfiguration() {
+            uiScrollStateMiddleAvatarSizeDP = AndroidUtilities.dp(configuration.smallestScreenWidthDp / 4f);
+            uiScrollStateMiddleAvatarTopMarginDP = AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight() / 2;
+        }
+
+
+        static class AvatarImageContainerAnimationConfigs {
+            float initialSize;
+            float targetSize;
+            float initialTopPadding;
+            float targetTopPadding;
+        }
     }
 }

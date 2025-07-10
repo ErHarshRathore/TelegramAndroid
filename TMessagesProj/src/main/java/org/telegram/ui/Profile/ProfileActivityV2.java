@@ -1412,6 +1412,7 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
         hasOwnBackground = true;
         extraHeight = AndroidUtilities.dp(88f);
 
+        ProfileScreenFeatureConfigs.getProfileActivityV2Configs(context.getResources().getConfiguration());
         profileActivityLayout = new ProfileActivityLayout(context);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override

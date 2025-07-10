@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs.ProfileActivityV2Configs.AvatarImageContainerAnimationConfigs;
+
 import androidx.annotation.Nullable;
 
 import org.telegram.messenger.AndroidUtilities;
@@ -30,8 +32,11 @@ public class ProfileActivityLayout extends FrameLayout {
 
     private FrameLayout topViewContainer;
     private FrameLayout avatarImageViewFrame;
+    private FrameLayout avatarImageView;
 
     private SimpleTextView progressTextView;
+
+    private final AvatarImageContainerAnimationConfigs avatarAnimationConfigs = new AvatarImageContainerAnimationConfigs();
 
     public ProfileActivityLayout(Context context) {
         super(context);
@@ -123,34 +128,39 @@ public class ProfileActivityLayout extends FrameLayout {
 
     @SuppressLint("DefaultLocale")
     void requestRecomposition() {
-        if (verticalScrollOffset < 0) {
-            Log.i(TAG, "requestRecomposition - Scrolling up");
-        }
-
         progressTextView.setText(String.format("%.4f", verticalScrollOffset));
     }
 
     private void onStartScrollAnimation(ScrollAnimationType type) {
         Log.i(TAG, "onStartScrollAnimation \t - " + type);
+
+        avatarAnimationConfigs.initialTopPadding = ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarTopMarginDP;
+        avatarAnimationConfigs.targetTopPadding = 0f;
+        if (type == ScrollAnimationType.MIDDLE_TO_TOP) {
+            avatarAnimationConfigs.initialSize = ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarSizeDP;
+            avatarAnimationConfigs.targetSize = 0;
+        } else if (type == ScrollAnimationType.MIDDLE_TO_BOTTOM || type == ScrollAnimationType.BOTTOM_TO_MIDDLE) {
+            avatarAnimationConfigs.initialSize = ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarSizeDP;
+            avatarAnimationConfigs.targetSize = super.getContext().getResources().getDisplayMetrics().widthPixels;
+        }
     }
 
     private void onScrollAnimation(ScrollAnimationType type, Float scrollOffset) {
         Log.d(TAG, "onScrollAnimation      \t - " + type + ", " + scrollOffset);
 
-
-        float avatarTopPadding = AndroidUtilities.lerp(AndroidUtilities.statusBarHeight, 0f, Math.abs(scrollOffset));
+        float avatarTopPadding = AndroidUtilities.lerp(
+                ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarTopMarginDP,
+                0f,
+                Math.abs(scrollOffset)
+        );
         avatarImageViewFrame.setPadding(0, (int) avatarTopPadding, 0, 0);
 
         if (type.isShrinkAnimation()) {
             // Handle specific logic for scrolling to top
-
-//            Float transition = AndroidUtilities.lerp(AndroidUtilities.statusBarHeight, 0f, -scrollOffset);
-//            avatarImageViewFrame.setTranslationY(transition);
-//            avatarImageViewFrame.setScaleX(1f + scrollOffset);
-//            avatarImageViewFrame.setScaleY(1f + scrollOffset);
-        } else if (type == ScrollAnimationType.MIDDLE_TO_BOTTOM || type == ScrollAnimationType.BOTTOM_TO_MIDDLE) {
+            avatarAnimationBetweenTopAndMiddle(scrollOffset);
+        } else if (type != ScrollAnimationType.NONE) {
             // Handle specific logic for scrolling to bottom
-            Log.i(TAG, "Scrolling to bottom with offset: " + scrollOffset);
+            avatarAnimationBetweenMiddleAndBottom(scrollOffset);
         }
     }
 
@@ -158,10 +168,28 @@ public class ProfileActivityLayout extends FrameLayout {
         Log.i(TAG, "onFinishScrollAnimation\t - " + type);
 
         if (type == ScrollAnimationType.TOP_TO_MIDDLE || type == ScrollAnimationType.BOTTOM_TO_MIDDLE) {
-            avatarImageViewFrame.setPadding(0, AndroidUtilities.statusBarHeight, 0, 0);
+            avatarImageViewFrame.setPadding(0, ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarTopMarginDP, 0, 0);
         } else {
             avatarImageViewFrame.setPadding(0, 0, 0, 0);
         }
+    }
+
+    private void avatarAnimationBetweenTopAndMiddle(Float scrollOffset) {
+        int avatarSize = (int) AndroidUtilities.lerp(
+                avatarAnimationConfigs.initialSize,
+                avatarAnimationConfigs.targetSize,
+                -scrollOffset
+        );
+        avatarImageView.setLayoutParams(new LayoutParams(avatarSize, avatarSize));
+    }
+
+    private void avatarAnimationBetweenMiddleAndBottom(Float scrollOffset) {
+        int avatarSize = (int) AndroidUtilities.lerp(
+                avatarAnimationConfigs.initialSize,
+                avatarAnimationConfigs.targetSize,
+                scrollOffset
+        );
+        avatarImageView.setLayoutParams(new LayoutParams(avatarSize, avatarSize));
     }
 
     // Other methods to handle UI interactions can be added here
@@ -206,10 +234,8 @@ public class ProfileActivityLayout extends FrameLayout {
         progressTextView.setWidthWrapContent(true);
         progressTextView.setText(INITIAL_TEXT);
         progressTextView.setTextSize(18);
-        progressTextView.setPadding(4, 4, 4, 4);
-        progressTextView.setBackgroundColor(0x77ffffff);
-
-        Log.i(TAG, "initializeProgressTextView");
+        progressTextView.setPadding(8, 8, 8, 8);
+        progressTextView.setBackgroundColor(0xaaffffff);
     }
 
     /** topViewContainer initialization */
@@ -217,22 +243,21 @@ public class ProfileActivityLayout extends FrameLayout {
         topViewContainer = new FrameLayout(getContext());
         topViewContainer.setBackgroundColor(0x22ffffff);
         topViewContainer.setPadding(0, 0, 0, 100);
-
-        Log.i(TAG, "initializeTopViewContainer");
     }
 
     /** avatarImageViewFrame initialization */
     private void initializeAvatarImageViewFrame() {
         avatarImageViewFrame = new FrameLayout(getContext());
-        avatarImageViewFrame.setBackgroundColor(0x77ff0000);
+        avatarImageViewFrame.setBackgroundColor(0x22ff0000);
 
-        FrameLayout avatarImageView = new FrameLayout(getContext());
-        avatarImageView.setBackgroundColor(0xff0000ff);
+        if (verticalScrollOffset == 0f)
+            avatarImageViewFrame.setPadding(0, ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarTopMarginDP, 0, 0);
 
-        int size = ProfileScreenFeatureConfigs.profileActivityV2Configs.UI_PROFILE_SCROLL_ANIMATION_MIDDLE_STATE_AVATAR_SIZE_DP;
-        avatarImageView.setLayoutParams(LayoutHelper.createFrame(size, size));
+        avatarImageView = new FrameLayout(getContext());
+        avatarImageView.setBackgroundColor(0x440000ff);
+
+        int size = ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarSizeDP;
+        avatarImageView.setLayoutParams(new LayoutParams(size, size));
         avatarImageViewFrame.addView(avatarImageView);
-
-        Log.i(TAG, "initializeAvatarImageViewFrame");
     }
 }
