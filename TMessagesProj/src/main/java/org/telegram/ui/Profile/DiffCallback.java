@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 class DiffCallback extends DiffUtil.Callback {
 
-    private final ProfileActivity parent;
+    private final ProfileActivityV2 parent;
     int oldRowCount;
 
     SparseIntArray oldPositionToItem = new SparseIntArray();
@@ -21,7 +21,7 @@ class DiffCallback extends DiffUtil.Callback {
     int oldMembersStartRow;
     int oldMembersEndRow;
 
-    DiffCallback(ProfileActivity parent) {
+    DiffCallback(ProfileActivityV2 parent) {
         this.parent = parent;
     }
 

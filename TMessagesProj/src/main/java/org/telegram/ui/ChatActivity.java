@@ -255,6 +255,8 @@ import org.telegram.ui.Components.voip.CellFlickerDrawable;
 import org.telegram.ui.Components.voip.VoIPHelper;
 import org.telegram.ui.Delegates.ChatActivityMemberRequestsDelegate;
 import org.telegram.ui.Gifts.GiftSheet;
+import org.telegram.ui.Profile.IProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stars.StarReactionsOverlay;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
@@ -273,7 +275,6 @@ import org.telegram.ui.bots.BotAdView;
 import org.telegram.ui.bots.BotCommandsMenuView;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.bots.WebViewRequestProps;
-import org.telegram.ui.Profile.ProfileActivity;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -11161,7 +11162,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     onClickListener = (v) -> {
                         Bundle args = new Bundle();
                         args.putLong("user_id", chatInviterId);
-                        presentFragment(new ProfileActivity(args));
+                        presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                     };
                 }
             } else {
@@ -17392,7 +17393,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         if (pressActionBar) {
                             final INavigationLayout layout = parentLayout;
                             removeSelfFromStack(false);
-                            layout.presentFragment(ProfileActivity.of(dialog_id));
+                            layout.presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(dialog_id));
                         } else {
                             parentLayout.expandPreviewFragment();
                         }
@@ -26146,7 +26147,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
         INavigationLayout actionBarLayout = parentLayout;
 
-        if (index > 0 && !(lastFragment instanceof ChatActivity) && !(lastFragment instanceof ProfileActivity) && currentChat.creator) {
+        if (index > 0 && !(lastFragment instanceof ChatActivity) && !(lastFragment instanceof IProfileActivity) && currentChat.creator) {
             for (int a = index, N = actionBarLayout.getFragmentStack().size() - 1; a < N; a++) {
                 BaseFragment fragment = actionBarLayout.getFragmentStack().get(a);
                 if (fragment instanceof ChatActivity) {
@@ -26154,10 +26155,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     bundle.putLong("chat_id", channelId);
                     actionBarLayout.addFragmentToStack(new ChatActivity(bundle), a);
                     fragment.removeSelfFromStack();
-                } else if (fragment instanceof ProfileActivity) {
+                } else if (fragment instanceof IProfileActivity) {
                     Bundle args = new Bundle();
                     args.putLong("chat_id", channelId);
-                    actionBarLayout.addFragmentToStack(new ProfileActivity(args), a);
+                    actionBarLayout.addFragmentToStack(ProfileScreenFeatureConfigs.getProfileActivity(args), a);
                     fragment.removeSelfFromStack();
                 } else if (fragment instanceof ChatEditActivity) {
                     Bundle args = new Bundle();
@@ -30877,7 +30878,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                             }
                                             args.putInt("report_reaction_message_id", primaryMessage.getId());
                                             args.putLong("report_reaction_from_dialog_id", dialog_id);
-                                            ProfileActivity fragment = new ProfileActivity(args);
+                                            BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
                                             presentFragment(fragment);
                                             closeMenu();
                                         }).setOnHeightChangedListener((view, newHeight) -> {
@@ -30966,7 +30967,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                     }
                                     args.putInt("report_reaction_message_id", primaryMessage.getId());
                                     args.putLong("report_reaction_from_dialog_id", dialog_id);
-                                    ProfileActivity fragment = new ProfileActivity(args);
+                                    BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
                                     presentFragment(fragment);
                                     closeMenu();
                                 }).setOnHeightChangedListener((view, newHeight) -> popupLayout.getSwipeBack().setNewForegroundHeight(foregroundIndex[0], AndroidUtilities.dp(44 + 8) + newHeight, true));
@@ -31032,7 +31033,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                 } else if (object instanceof TLRPC.Chat) {
                                     args.putLong("chat_id", ((TLRPC.Chat) object).id);
                                 }
-                                ProfileActivity fragment = new ProfileActivity(args);
+                                BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
                                 presentFragment(fragment);
                                 closeMenu();
                                 return;
@@ -31065,7 +31066,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         } else if (object instanceof TLRPC.Chat) {
                             args.putLong("chat_id", ((TLRPC.Chat) object).id);
                         }
-                        ProfileActivity fragment = new ProfileActivity(args);
+                        BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
                         presentFragment(fragment);
                     });
 
@@ -31138,7 +31139,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             if (userId == getUserConfig().getClientUserId()) {
                                 args.putBoolean("my_profile", true);
                             }
-                            presentFragment(new ProfileActivity(args));
+                            presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                         }
                     };
                     final FrameLayout messageSeenLayout = new FrameLayout(contentView.getContext());
@@ -35338,7 +35339,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             args.putString("vcard_phone", phone);
             args.putString("vcard_first_name", first_name);
             args.putString("vcard_last_name", last_name);
-            presentFragment(new ProfileActivity(args));
+            presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
             return;
         }
 
@@ -36356,7 +36357,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                                         CharSequence subtitle = AndroidUtilities.replaceSingleTag(LocaleController.getString(R.string.ApplyAvatarHint), () -> {
                                                             Bundle args = new Bundle();
                                                             args.putLong("user_id", UserConfig.getInstance(currentAccount).clientUserId);
-                                                            presentFragment(new ProfileActivity(args));
+                                                            presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                                                         });
                                                         BulletinFactory.of(ChatActivity.this).createUsersBulletin(Collections.singletonList(user), title, subtitle, null).show();
                                                     }
@@ -38687,8 +38688,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 Bundle args = new Bundle();
                 args.putLong("user_id", user.id);
                 args.putBoolean("expandPhoto", expandPhoto);
-                ProfileActivity fragment = new ProfileActivity(args);
-                fragment.setPlayProfileAnimation(currentUser != null && currentUser.id == user.id ? 1 : 0);
+
+                BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
+                if (fragment instanceof IProfileActivity)
+                    ((IProfileActivity) fragment).setPlayProfileAnimation(currentUser != null && currentUser.id == user.id ? 1 : 0);
+
                 AndroidUtilities.setAdjustResizeToNothing(getParentActivity(), classGuid);
                 presentFragment(fragment);
             }
@@ -38703,7 +38707,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 Bundle args = new Bundle();
                 args.putLong("chat_id", chat.id);
                 args.putBoolean("expandPhoto", expandPhoto);
-                presentFragment(new ProfileActivity(args));
+                presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
             }
         }
 
@@ -39101,7 +39105,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (scrimPopupWindow != null) {
                         scrimPopupWindow.dismiss();
                     }
-                    presentFragment(ProfileActivity.of(dialogId));
+                    presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(dialogId));
                 });
                 popupLayout.addView(userButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 52));
             }
@@ -40375,7 +40379,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (cell.getMessageObject().messageOwner.media instanceof TLRPC.TL_messageMediaGiveawayResults) {
                 TLRPC.TL_messageMediaGiveawayResults giveaway = (TLRPC.TL_messageMediaGiveawayResults) cell.getMessageObject().messageOwner.media;
                 long id = giveaway.winners.get(pressedPos);
-                presentFragment(ProfileActivity.of(id));
+                presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(id));
             }
         }
 
@@ -40586,14 +40590,16 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (currentEncryptedChat != null && uid == currentUser.id) {
                 args.putLong("dialog_id", dialog_id);
             }
-            ProfileActivity fragment = new ProfileActivity(args);
-            fragment.setPlayProfileAnimation(currentUser != null && currentUser.id == uid ? 1 : 0);
+            BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
+            if (fragment instanceof IProfileActivity)
+                ((IProfileActivity) fragment).setPlayProfileAnimation(currentUser != null && currentUser.id == uid ? 1 : 0);
+
             presentFragment(fragment);
         } else {
             Bundle args = new Bundle();
             args.putLong("user_id", uid);
             args.putBoolean("my_profile", true);
-            presentFragment(new ProfileActivity(args, null));
+            presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args, null));
         }
     }
 
@@ -43053,7 +43059,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             options.addGap();
             if (did != 0) {
                 options.addProfile(obj, getString(isUser ? R.string.ViewProfile : (isChannel ? R.string.ViewChannelProfile : R.string.ViewGroupProfile)), () -> {
-                    presentFragment(ProfileActivity.of(did));
+                    presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(did));
                 });
             } else {
                 options.addText(getString(R.string.NoUsernameFound2), 13, dp(200));
@@ -43273,7 +43279,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 options.addGap();
                 options.addProfile(user, getString(R.string.ViewProfile), () -> {
                     dialog.dismiss();
-                    presentFragment(ProfileActivity.of(user.id));
+                    presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(user.id));
                 });
             }
 
@@ -43593,7 +43599,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                         args.putInt("report_reaction_message_id", messageObject.getId());
                         args.putLong("report_reaction_from_dialog_id", dialog_id);
-                        ProfileActivity fragment = new ProfileActivity(args);
+                        BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
                         presentFragment(fragment);
                         closeMenu();
                     }), LayoutHelper.createFrame(240, LayoutHelper.WRAP_CONTENT));

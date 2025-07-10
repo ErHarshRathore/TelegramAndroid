@@ -4,6 +4,7 @@
  * You should have received a copy of the license in this archive (see LICENSE).
  *
  * Copyright Nikolai Kudashov, 2013-2018.
+ * Last Updated by github/@ErHarshRathore in July'25.
  */
 
 package org.telegram.ui.Profile;
@@ -60,7 +61,6 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.CharacterStyle;
 import android.text.style.ForegroundColorSpan;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Property;
 import android.util.SparseArray;
@@ -265,6 +265,7 @@ import org.telegram.ui.PinchToZoomHelper;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.PrivacyControlActivity;
 import org.telegram.ui.PrivacySettingsActivity;
+import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.ProfileBirthdayEffect;
 import org.telegram.ui.ProfileNotificationsActivity;
 import org.telegram.ui.QrActivity;
@@ -320,7 +321,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class ProfileActivity extends BaseFragment implements IProfileActivity, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate {
+public class ProfileActivityV2 extends BaseFragment implements IProfileActivity, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate {
     // Static Fields
     final static int add_photo = 36;
     final static int set_as_main = 33;
@@ -643,7 +644,6 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     long selectedUser;
     long topicId;
     long userId;
-    org.telegram.ui.ProfileActivity.AvatarImageView avatarImage;
     AboutLinkCell aboutLinkCell;
     ActionBarMenuItem animatingItem;
     ActionBarMenuItem callItem;
@@ -686,6 +686,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     OverlaysView overlaysView;
     PagerIndicatorView avatarsViewPagerIndicatorView;
     PinchToZoomHelper pinchToZoomHelper;
+    ProfileActivity.AvatarImageView avatarImage;
     ProfileActivityLayout profileActivityLayout;
     ProfileBirthdayEffect.BirthdayEffectFetcher birthdayFetcher;
     ProfileChannelCell.ChannelMessageFetcher profileChannelMessageFetcher;
@@ -750,15 +751,15 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     private String nameTextViewRightDrawable2ContentDescription = null;
     private String nameTextViewRightDrawableContentDescription = null;
     private TopView topView;
-    final Property<ProfileActivity, Float> HEADER_SHADOW = new AnimationProperties.FloatProperty<ProfileActivity>("headerShadow") {
+    final Property<ProfileActivityV2, Float> HEADER_SHADOW = new AnimationProperties.FloatProperty<ProfileActivityV2>("headerShadow") {
         @Override
-        public void setValue(ProfileActivity object, float value) {
+        public void setValue(ProfileActivityV2 object, float value) {
             headerShadowAlpha = value;
             topView.invalidate();
         }
 
         @Override
-        public Float get(ProfileActivity object) {
+        public Float get(ProfileActivityV2 object) {
             return headerShadowAlpha;
         }
     };
@@ -862,23 +863,23 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
     private View scrimView = null;
     private View transitionOnlineText;
 
-    public ProfileActivity(Bundle args) {
+    public ProfileActivityV2(Bundle args) {
         this(args, null);
     }
 
-    public ProfileActivity(Bundle args, SharedMediaLayout.SharedMediaPreloader preloader) {
+    public ProfileActivityV2(Bundle args, SharedMediaLayout.SharedMediaPreloader preloader) {
         super(args);
         sharedMediaPreloader = preloader;
     }
 
-    public static ProfileActivity of(long dialogId) {
+    public static ProfileActivityV2 of(long dialogId) {
         Bundle bundle = new Bundle();
         if (dialogId >= 0) {
             bundle.putLong("user_id", dialogId);
         } else {
             bundle.putLong("chat_id", -dialogId);
         }
-        return new ProfileActivity(bundle);
+        return new ProfileActivityV2(bundle);
     }
 
     public static void sendLogs(Activity activity, boolean last) {
@@ -996,8 +997,19 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         });
     }
 
+    @Override
     public long getTopicId() {
         return topicId;
+    }
+
+    @Override
+    public boolean isTopic() {
+        return isTopic;
+    }
+
+    @Override
+    public ProfileGiftsView getGiftsView() {
+        return giftsView;
     }
 
     /**
@@ -1417,14 +1429,14 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     if (!isBot || MessagesController.isSupportUser(user)) {
                         if (userBlocked) {
                             getMessagesController().unblockPeer(userId);
-                            if (BulletinFactory.canShowBulletin(ProfileActivity.this)) {
-                                BulletinFactory.createBanBulletin(ProfileActivity.this, false).show();
+                            if (BulletinFactory.canShowBulletin(ProfileActivityV2.this)) {
+                                BulletinFactory.createBanBulletin(ProfileActivityV2.this, false).show();
                             }
                         } else {
                             if (reportSpam) {
-                                AlertsCreator.showBlockReportSpamAlert(ProfileActivity.this, userId, user, null, currentEncryptedChat, false, null, param -> {
+                                AlertsCreator.showBlockReportSpamAlert(ProfileActivityV2.this, userId, user, null, currentEncryptedChat, false, null, param -> {
                                     if (param == 1) {
-                                        getNotificationCenter().removeObserver(ProfileActivity.this, NotificationCenter.closeChats);
+                                        getNotificationCenter().removeObserver(ProfileActivityV2.this, NotificationCenter.closeChats);
                                         getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
                                         playProfileAnimation = 0;
                                         finishFragment();
@@ -1438,8 +1450,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                 builder.setMessage(AndroidUtilities.replaceTags(formatString("AreYouSureBlockContact2", R.string.AreYouSureBlockContact2, ContactsController.formatName(user.first_name, user.last_name))));
                                 builder.setPositiveButton(LocaleController.getString(R.string.BlockContact), (dialogInterface, i) -> {
                                     getMessagesController().blockPeer(userId);
-                                    if (BulletinFactory.canShowBulletin(ProfileActivity.this)) {
-                                        BulletinFactory.createBanBulletin(ProfileActivity.this, true).show();
+                                    if (BulletinFactory.canShowBulletin(ProfileActivityV2.this)) {
+                                        BulletinFactory.createBanBulletin(ProfileActivityV2.this, true).show();
                                     }
                                 });
                                 builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
@@ -1453,7 +1465,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         }
                     } else {
                         if (!userBlocked) {
-                            AlertsCreator.createClearOrDeleteDialogAlert(ProfileActivity.this, false, currentChat, user, currentEncryptedChat != null, true, true, (param) -> {
+                            AlertsCreator.createClearOrDeleteDialogAlert(ProfileActivityV2.this, false, currentChat, user, currentEncryptedChat != null, true, true, (param) -> {
                                 if (getParentLayout() != null) {
                                     List<BaseFragment> fragmentStack = getParentLayout().getFragmentStack();
                                     BaseFragment prevFragment = fragmentStack == null || fragmentStack.size() < 2 ? null : fragmentStack.get(fragmentStack.size() - 2);
@@ -1482,7 +1494,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     args.putString("selectAlertString", LocaleController.getString(R.string.SendContactToText));
                     args.putString("selectAlertStringGroup", LocaleController.getString(R.string.SendContactToGroupText));
                     DialogsActivity fragment = new DialogsActivity(args);
-                    fragment.setDelegate(ProfileActivity.this);
+                    fragment.setDelegate(ProfileActivityV2.this);
                     presentFragment(fragment);
                 } else if (id == edit_contact) {
                     Bundle args = new Bundle();
@@ -1548,7 +1560,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         button.setTextColor(Theme.getColor(Theme.key_text_RedBold));
                     }
                 } else if (id == report) {
-                    ReportBottomSheet.openChat(ProfileActivity.this, getDialogId());
+                    ReportBottomSheet.openChat(ProfileActivityV2.this, getDialogId());
                 } else if (id == edit_channel) {
                     if (isTopic) {
                         Bundle args = new Bundle();
@@ -1596,7 +1608,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                     public void didSetRights(int rights, TLRPC.TL_chatAdminRights rightsAdmin, TLRPC.TL_chatBannedRights rightsBanned, String rank) {
                                         disableProfileAnimation = true;
                                         fragment.removeSelfFromStack();
-                                        getNotificationCenter().removeObserver(ProfileActivity.this, NotificationCenter.closeChats);
+                                        getNotificationCenter().removeObserver(ProfileActivityV2.this, NotificationCenter.closeChats);
                                         getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
                                     }
 
@@ -1622,7 +1634,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                     return;
                                 }
                                 ChatActivity chatActivity = new ChatActivity(args1);
-                                getNotificationCenter().removeObserver(ProfileActivity.this, NotificationCenter.closeChats);
+                                getNotificationCenter().removeObserver(ProfileActivityV2.this, NotificationCenter.closeChats);
                                 getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
                                 getMessagesController().addUserToChat(-did, user, 0, null, chatActivity, true, null, null);
                                 presentFragment(chatActivity, true);
@@ -1691,9 +1703,9 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     } else if (chatId != 0) {
                         ChatObject.Call call = getMessagesController().getGroupCall(chatId, false);
                         if (call == null) {
-                            VoIPHelper.showGroupCallAlert(ProfileActivity.this, currentChat, null, false, getAccountInstance());
+                            VoIPHelper.showGroupCallAlert(ProfileActivityV2.this, currentChat, null, false, getAccountInstance());
                         } else {
-                            VoIPHelper.startCall(currentChat, null, null, false, getParentActivity(), ProfileActivity.this, getAccountInstance());
+                            VoIPHelper.startCall(currentChat, null, null, false, getParentActivity(), ProfileActivityV2.this, getAccountInstance());
                         }
                     }
                 } else if (id == search_members) {
@@ -1768,17 +1780,17 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                             if (getParentActivity() == null) {
                                 return;
                             }
-                            BulletinFactory.createSaveToGalleryBulletin(ProfileActivity.this, isVideo, null).show();
+                            BulletinFactory.createSaveToGalleryBulletin(ProfileActivityV2.this, isVideo, null).show();
                         });
                     }
                 } else if (id == edit_info) {
                     presentFragment(new UserInfoActivity());
                 } else if (id == edit_color) {
                     if (!getUserConfig().isPremium()) {
-                        showDialog(new PremiumFeatureBottomSheet(ProfileActivity.this, PremiumPreviewFragment.PREMIUM_FEATURE_NAME_COLOR, true));
+                        showDialog(new PremiumFeatureBottomSheet(ProfileActivityV2.this, PremiumPreviewFragment.PREMIUM_FEATURE_NAME_COLOR, true));
                         return;
                     }
-                    presentFragment(new PeerColorActivity(0).startOnProfile().setOnApplied(ProfileActivity.this));
+                    presentFragment(new PeerColorActivity(0).startOnProfile().setOnApplied(ProfileActivityV2.this));
                 } else if (id == copy_link_profile) {
                     TLRPC.User user = getMessagesController().getUser(userId);
                     AndroidUtilities.addToClipboard(getMessagesController().linkPrefix + "/" + UserObject.getPublicUsername(user));
@@ -2467,7 +2479,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                         }
                                         updateAvatarRoundRadius();
                                         return StoryRecorder.SourceView.fromAvatarImage(
-                                                TypeTransformer.transformAvatarImageView(avatarImage),
+                                                avatarImage,
                                                 ChatObject.isForum(currentChat)
                                         );
                                     }
@@ -2602,7 +2614,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
             @Override
             protected boolean onMemberClick(TLRPC.ChatParticipant participant, boolean isLong, View view) {
-                return ProfileActivity.this.onMemberClick(participant, isLong, view);
+                return ProfileActivityV2.this.onMemberClick(participant, isLong, view);
             }
 
             @Override
@@ -2689,7 +2701,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                 }
                                 updateAvatarRoundRadius();
                                 return StoryRecorder.SourceView.fromAvatarImage(
-                                        TypeTransformer.transformAvatarImageView(avatarImage),
+                                        avatarImage,
                                         ChatObject.isForum(currentChat)
                                 );
                             }
@@ -3036,7 +3048,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             } else if (position == notificationsSimpleRow) {
                 boolean muted = getMessagesController().isDialogMuted(did, topicId);
                 getNotificationsController().muteDialog(did, topicId, !muted);
-                BulletinFactory.createMuteBulletin(ProfileActivity.this, !muted, null).show();
+                BulletinFactory.createMuteBulletin(ProfileActivityV2.this, !muted, null).show();
                 updateExceptions();
                 if (notificationsSimpleRow >= 0 && listAdapter != null) {
                     listAdapter.notifyItemChanged(notificationsSimpleRow);
@@ -3087,7 +3099,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
                     reportReactionMessageId = 0;
                     updateListAnimated(false);
-                    BulletinFactory.of(ProfileActivity.this).createReportSent(resourcesProvider).show();
+                    BulletinFactory.of(ProfileActivityV2.this).createReportSent(resourcesProvider).show();
                 });
                 builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dialog, which) -> {
                     dialog.dismiss();
@@ -3167,8 +3179,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
                         boolean enabled = !preferences.getBoolean("sound_enabled_" + NotificationsController.getSharedPrefKey(did, topicId), true);
                         preferences.edit().putBoolean("sound_enabled_" + NotificationsController.getSharedPrefKey(did, topicId), enabled).apply();
-                        if (BulletinFactory.canShowBulletin(ProfileActivity.this)) {
-                            BulletinFactory.createSoundEnabledBulletin(ProfileActivity.this, enabled ? NotificationsController.SETTING_SOUND_ON : NotificationsController.SETTING_SOUND_OFF, getResourceProvider()).show();
+                        if (BulletinFactory.canShowBulletin(ProfileActivityV2.this)) {
+                            BulletinFactory.createSoundEnabledBulletin(ProfileActivityV2.this, enabled ? NotificationsController.SETTING_SOUND_ON : NotificationsController.SETTING_SOUND_OFF, getResourceProvider()).show();
                         }
                     }
 
@@ -3178,13 +3190,13 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                             if (getMessagesController().isDialogMuted(did, topicId)) {
                                 toggleMute();
                             }
-                            if (BulletinFactory.canShowBulletin(ProfileActivity.this)) {
-                                BulletinFactory.createMuteBulletin(ProfileActivity.this, NotificationsController.SETTING_MUTE_UNMUTE, timeInSeconds, getResourceProvider()).show();
+                            if (BulletinFactory.canShowBulletin(ProfileActivityV2.this)) {
+                                BulletinFactory.createMuteBulletin(ProfileActivityV2.this, NotificationsController.SETTING_MUTE_UNMUTE, timeInSeconds, getResourceProvider()).show();
                             }
                         } else {
                             getNotificationsController().muteUntil(did, topicId, timeInSeconds);
-                            if (BulletinFactory.canShowBulletin(ProfileActivity.this)) {
-                                BulletinFactory.createMuteBulletin(ProfileActivity.this, NotificationsController.SETTING_MUTE_CUSTOM, timeInSeconds, getResourceProvider()).show();
+                            if (BulletinFactory.canShowBulletin(ProfileActivityV2.this)) {
+                                BulletinFactory.createMuteBulletin(ProfileActivityV2.this, NotificationsController.SETTING_MUTE_CUSTOM, timeInSeconds, getResourceProvider()).show();
                             }
                             updateExceptions();
                             if (notificationsRow >= 0 && listAdapter != null) {
@@ -3207,8 +3219,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     public void toggleMute() {
                         boolean muted = getMessagesController().isDialogMuted(did, topicId);
                         getNotificationsController().muteDialog(did, topicId, !muted);
-                        if (ProfileActivity.this.fragmentView != null) {
-                            BulletinFactory.createMuteBulletin(ProfileActivity.this, !muted, null).show();
+                        if (ProfileActivityV2.this.fragmentView != null) {
+                            BulletinFactory.createMuteBulletin(ProfileActivityV2.this, !muted, null).show();
                         }
                         updateExceptions();
                         if (notificationsRow >= 0 && listAdapter != null) {
@@ -3231,11 +3243,11 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     x += v.getX() + v.getPaddingLeft();
                     y += v.getY() + v.getPaddingTop();
                 }
-                chatNotificationsPopupWrapper.showAsOptions(ProfileActivity.this, view, x, y);
+                chatNotificationsPopupWrapper.showAsOptions(ProfileActivityV2.this, view, x, y);
             } else if (position == unblockRow) {
                 getMessagesController().unblockPeer(userId);
-                if (BulletinFactory.canShowBulletin(ProfileActivity.this)) {
-                    BulletinFactory.createBanBulletin(ProfileActivity.this, false).show();
+                if (BulletinFactory.canShowBulletin(ProfileActivityV2.this)) {
+                    BulletinFactory.createBanBulletin(ProfileActivityV2.this, false).show();
                 }
             } else if (position == addToGroupButtonRow) {
                 try {
@@ -3246,7 +3258,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             } else if (position == sendMessageRow) {
                 onWriteButtonClick();
             } else if (position == reportRow) {
-                ReportBottomSheet.openChat(ProfileActivity.this, getDialogId());
+                ReportBottomSheet.openChat(ProfileActivityV2.this, getDialogId());
             } else if (position >= membersStartRow && position < membersEndRow) {
                 TLRPC.ChatParticipant participant;
                 if (!sortedUsers.isEmpty()) {
@@ -3266,7 +3278,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     presentFragment(fragment);
                 }
             } else if (position == joinRow) {
-                getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ProfileActivity.this, true, () -> {
+                getMessagesController().addUserToChat(currentChat.id, getUserConfig().getCurrentUser(), 0, null, ProfileActivityV2.this, true, () -> {
                     updateRowsIds();
                     if (listAdapter != null) {
                         listAdapter.notifyDataSetChanged();
@@ -3275,7 +3287,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     if (err != null && "INVITE_REQUEST_SENT".equals(err.text)) {
                         SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
                         preferences.edit().putLong("dialog_join_requested_time_" + dialogId, System.currentTimeMillis()).commit();
-                        JoinGroupAlert.showBulletin(context, ProfileActivity.this, ChatObject.isChannel(currentChat) && !currentChat.megagroup);
+                        JoinGroupAlert.showBulletin(context, ProfileActivityV2.this, ChatObject.isChannel(currentChat) && !currentChat.megagroup);
                         updateRowsIds();
                         if (listAdapter != null) {
                             listAdapter.notifyDataSetChanged();
@@ -3340,7 +3352,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             } else if (position == devicesRow) {
                 presentFragment(new SessionsActivity(0));
             } else if (position == questionRow) {
-                showDialog(AlertsCreator.createSupportAlert(ProfileActivity.this, resourcesProvider));
+                showDialog(AlertsCreator.createSupportAlert(ProfileActivityV2.this, resourcesProvider));
             } else if (position == faqRow) {
                 Browser.openUrl(getParentActivity(), LocaleController.getString(R.string.TelegramFaqUrl));
             } else if (position == policyRow) {
@@ -3411,7 +3423,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 final int[] reqId = new int[1];
                 reqId[0] = botPermissionEmojiStatusReqId = getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
                     if (!(res instanceof TLRPC.TL_boolTrue)) {
-                        BulletinFactory.of(ProfileActivity.this).showForError(err);
+                        BulletinFactory.of(ProfileActivityV2.this).showForError(err);
                     }
                     if (botPermissionEmojiStatusReqId == reqId[0]) {
                         botPermissionEmojiStatusReqId = 0;
@@ -3817,7 +3829,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     if (userInfo == null) return false;
                     try {
                         AndroidUtilities.addToClipboard(UserInfoActivity.birthdayString(userInfo.birthday));
-                        BulletinFactory.of(ProfileActivity.this).createCopyBulletin(getString(R.string.BirthdayCopied)).show();
+                        BulletinFactory.of(ProfileActivityV2.this).createCopyBulletin(getString(R.string.BirthdayCopied)).show();
                     } catch (Exception e) {
                         FileLog.e(e);
                     }
@@ -4095,7 +4107,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         avatarContainer.setPivotX(0);
         avatarContainer.setPivotY(0);
         avatarContainer2.addView(avatarContainer, LayoutHelper.createFrame(42, 42, Gravity.TOP | Gravity.LEFT, 64, 0, 0, 0));
-        avatarImage = new org.telegram.ui.ProfileActivity.AvatarImageView(context) {
+        avatarImage = new ProfileActivity.AvatarImageView(context) {
             @Override
             public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
                 super.onInitializeAccessibilityNodeInfo(info);
@@ -4148,10 +4160,10 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         if (document == null) {
                             return;
                         }
-                        Bulletin bulletin = BulletinFactory.of(ProfileActivity.this).createContainsEmojiBulletin(document, BulletinFactory.CONTAINS_EMOJI_IN_TOPIC, set -> {
+                        Bulletin bulletin = BulletinFactory.of(ProfileActivityV2.this).createContainsEmojiBulletin(document, BulletinFactory.CONTAINS_EMOJI_IN_TOPIC, set -> {
                             ArrayList<TLRPC.InputStickerSet> inputSets = new ArrayList<>(1);
                             inputSets.add(set);
-                            EmojiPacksAlert alert = new EmojiPacksAlert(ProfileActivity.this, getParentActivity(), resourcesProvider, inputSets);
+                            EmojiPacksAlert alert = new EmojiPacksAlert(ProfileActivityV2.this, getParentActivity(), resourcesProvider, inputSets);
                             showDialog(alert);
                         });
                         if (bulletin != null) {
@@ -4230,7 +4242,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 userId != 0 ? userId : -chatId,
                 actionBar,
                 listView,
-                TypeTransformer.transformAvatarImageView(avatarImage),
+                avatarImage,
                 getClassGuid(),
                 overlaysView
         ) {
@@ -4403,7 +4415,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 getDialogId(),
                 isTopic,
                 avatarContainer,
-                TypeTransformer.transformAvatarImageView(avatarImage),
+                avatarImage,
                 resourcesProvider
         ) {
             @Override
@@ -4441,7 +4453,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 currentAccount,
                 getDialogId(),
                 avatarContainer,
-                TypeTransformer.transformAvatarImageView(avatarImage),
+                avatarImage,
                 resourcesProvider
         );
         avatarContainer2.addView(giftsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -4760,7 +4772,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                             }
                             updateAvatarRoundRadius();
                             return StoryRecorder.SourceView.fromAvatarImage(
-                                    TypeTransformer.transformAvatarImageView(avatarImage),
+                                    avatarImage,
                                     ChatObject.isForum(currentChat)
                             );
                         }
@@ -5071,8 +5083,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         getParentLayout().removeFragmentFromStack(fragment);
                         i--;
                     }
-                } else if (fragment instanceof ProfileActivity) {
-                    if (fragment != this && ((ProfileActivity) fragment).getDialogId() == getDialogId() && ((ProfileActivity) fragment).isTopic) {
+                } else if (fragment instanceof ProfileActivityV2) {
+                    if (fragment != this && ((ProfileActivityV2) fragment).getDialogId() == getDialogId() && ((ProfileActivityV2) fragment).isTopic) {
                         getParentLayout().removeFragmentFromStack(fragment);
                         i--;
                     }
@@ -5112,7 +5124,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
             @Override
             public long getDialogId() {
-                return ProfileActivity.this.getDialogId();
+                return ProfileActivityV2.this.getDialogId();
             }
 
             @Override
@@ -5221,7 +5233,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         if (userId != 0) {
             TLRPC.User user = getMessagesController().getUser(userId);
             if (user.photo != null && user.photo.photo_big != null) {
-                PhotoViewer.getInstance().setParentActivity(ProfileActivity.this);
+                PhotoViewer.getInstance().setParentActivity(ProfileActivityV2.this);
                 if (user.photo.dc_id != 0) {
                     user.photo.photo_big.dc_id = user.photo.dc_id;
                 }
@@ -5230,7 +5242,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         } else if (chatId != 0) {
             TLRPC.Chat chat = getMessagesController().getChat(chatId);
             if (chat.photo != null && chat.photo.photo_big != null) {
-                PhotoViewer.getInstance().setParentActivity(ProfileActivity.this);
+                PhotoViewer.getInstance().setParentActivity(ProfileActivityV2.this);
                 if (chat.photo.dc_id != 0) {
                     chat.photo.photo_big.dc_id = chat.photo.dc_id;
                 }
@@ -5290,12 +5302,12 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     }
                     Bundle args = new Bundle();
                     args.putLong("user_id", userId);
-                    if (!getMessagesController().checkCanOpenChat(args, ProfileActivity.this)) {
+                    if (!getMessagesController().checkCanOpenChat(args, ProfileActivityV2.this)) {
                         return;
                     }
                     boolean removeFragment = arguments.getBoolean("removeFragmentOnChatOpen", true);
                     if (!AndroidUtilities.isTablet() && removeFragment) {
-                        getNotificationCenter().removeObserver(ProfileActivity.this, NotificationCenter.closeChats);
+                        getNotificationCenter().removeObserver(ProfileActivityV2.this, NotificationCenter.closeChats);
                         getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
                     }
                     int distance = getArguments().getInt("nearby_distance", -1);
@@ -5321,7 +5333,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
         Bundle args = new Bundle();
         args.putLong("chat_id", chatInfo.linked_chat_id);
-        if (!getMessagesController().checkCanOpenChat(args, ProfileActivity.this)) {
+        if (!getMessagesController().checkCanOpenChat(args, ProfileActivityV2.this)) {
             return;
         }
         presentFragment(new ChatActivity(args));
@@ -5413,7 +5425,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             Bundle args = new Bundle();
             args.putLong("user_id", participant.user_id);
             args.putBoolean("preload_messages", true);
-            presentFragment(new ProfileActivity(args));
+            presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
         }
         return true;
     }
@@ -5423,8 +5435,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         ChatRightsEditActivity fragment = new ChatRightsEditActivity(user.id, chatId, adminRights, currentChat.default_banned_rights, bannedRights, rank, action, true, false, null) {
             @Override
             public void onTransitionAnimationEnd(boolean isOpen, boolean backward) {
-                if (!isOpen && backward && needShowBulletin[0] && BulletinFactory.canShowBulletin(ProfileActivity.this)) {
-                    BulletinFactory.createPromoteToAdminBulletin(ProfileActivity.this, user.first_name).show();
+                if (!isOpen && backward && needShowBulletin[0] && BulletinFactory.canShowBulletin(ProfileActivityV2.this)) {
+                    BulletinFactory.createPromoteToAdminBulletin(ProfileActivityV2.this, user.first_name).show();
                 }
             }
         };
@@ -5996,9 +6008,9 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
     private void leaveChatPressed() {
         boolean isForum = ChatObject.isForum(currentChat);
-        AlertsCreator.createClearOrDeleteDialogAlert(ProfileActivity.this, false, currentChat, null, false, isForum, !isForum, (param) -> {
+        AlertsCreator.createClearOrDeleteDialogAlert(ProfileActivityV2.this, false, currentChat, null, false, isForum, !isForum, (param) -> {
             playProfileAnimation = 0;
-            getNotificationCenter().removeObserver(ProfileActivity.this, NotificationCenter.closeChats);
+            getNotificationCenter().removeObserver(ProfileActivityV2.this, NotificationCenter.closeChats);
             getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
             finishFragment();
             getNotificationCenter().postNotificationName(NotificationCenter.needDeleteDialog, -currentChat.id, null, currentChat, param);
@@ -6159,7 +6171,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         sharedMediaLayout.photoVideoOptionsItem.setVisibility(View.INVISIBLE);
 
                         headerShadowAnimatorSet = new AnimatorSet();
-                        headerShadowAnimatorSet.playTogether(ObjectAnimator.ofFloat(ProfileActivity.this, HEADER_SHADOW, 1.0f));
+                        headerShadowAnimatorSet.playTogether(ObjectAnimator.ofFloat(ProfileActivityV2.this, HEADER_SHADOW, 1.0f));
                         headerShadowAnimatorSet.setDuration(100);
                         headerShadowAnimatorSet.addListener(new AnimatorListenerAdapter() {
                             @Override
@@ -6205,7 +6217,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     currentParticipants.add(chatInfo.participants.participants.get(i).user_id);
                 }
             }
-            getMessagesController().addUsersToChat(currentChat, ProfileActivity.this, users, fwdCount, user -> {
+            getMessagesController().addUsersToChat(currentChat, ProfileActivityV2.this, users, fwdCount, user -> {
                 addedUsers.add(user);
             }, restrictedUser -> {
                 for (int i = 0; i < chatInfo.participants.participants.size(); i++) {
@@ -7006,7 +7018,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         } else if (id == NotificationCenter.encryptedChatCreated) {
             if (creatingChat) {
                 AndroidUtilities.runOnUIThread(() -> {
-                    getNotificationCenter().removeObserver(ProfileActivity.this, NotificationCenter.closeChats);
+                    getNotificationCenter().removeObserver(ProfileActivityV2.this, NotificationCenter.closeChats);
                     getNotificationCenter().postNotificationName(NotificationCenter.closeChats);
                     TLRPC.EncryptedChat encryptedChat = (TLRPC.EncryptedChat) args[0];
                     Bundle args2 = new Bundle();
@@ -7465,6 +7477,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return super.canBeginSlide();
     }
 
+    @Override
     public UndoView getUndoView() {
         return undoView;
     }
@@ -7476,6 +7489,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return actionBar.isEnabled() && (sharedMediaRow == -1 || sharedMediaLayout == null || !sharedMediaLayout.closeActionMode());
     }
 
+    @Override
     public boolean isSettings() {
         return imageUpdater != null && !myProfile;
     }
@@ -7489,6 +7503,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         fullyVisible = false;
     }
 
+    @Override
     public void setPlayProfileAnimation(int type) {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         if (!AndroidUtilities.isTablet()) {
@@ -7801,7 +7816,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                 }
                 if (avatarImage != null) {
                     avatarImage.setCrossfadeProgress(1.0f);
-                    animators.add(ObjectAnimator.ofFloat(avatarImage, org.telegram.ui.ProfileActivity.AvatarImageView.CROSSFADE_PROGRESS, 0.0f));
+                    animators.add(ObjectAnimator.ofFloat(avatarImage, ProfileActivity.AvatarImageView.CROSSFADE_PROGRESS, 0.0f));
                 }
 
                 boolean onlineTextCrosafade = false;
@@ -7888,7 +7903,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     animators.add(ObjectAnimator.ofFloat(floatingButtonContainer, View.ALPHA, 0.0f));
                 }
                 if (avatarImage != null) {
-                    animators.add(ObjectAnimator.ofFloat(avatarImage, org.telegram.ui.ProfileActivity.AvatarImageView.CROSSFADE_PROGRESS, 1.0f));
+                    animators.add(ObjectAnimator.ofFloat(avatarImage, ProfileActivity.AvatarImageView.CROSSFADE_PROGRESS, 1.0f));
                 }
 
                 boolean crossfadeOnlineText = false;
@@ -8012,6 +8027,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
     }
 
+    @Override
     public void setChatInfo(TLRPC.ChatFull value) {
         chatInfo = value;
         if (chatInfo != null && chatInfo.migrated_from_chat_id != 0 && mergeDialogId == 0) {
@@ -8043,6 +8059,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return getMessagesController().getStoriesController().hasStories(getDialogId()) && !isTopic;
     }
 
+    @Override
     public void setUserInfo(
             TLRPC.UserFull value,
             ProfileChannelCell.ChannelMessageFetcher channelMessageFetcher,
@@ -8128,8 +8145,14 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
     }
 
+    @Override
     public boolean isChat() {
         return chatId != 0;
+    }
+
+    @Override
+    public SharedMediaLayout getSharedMediaLayout() {
+        return sharedMediaLayout;
     }
 
     private void updateRowsIds() {
@@ -9059,7 +9082,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                             }
                             return;
                         }
-                        PremiumPreviewBottomSheet premiumPreviewBottomSheet = new PremiumPreviewBottomSheet(ProfileActivity.this, currentAccount, user, resourcesProvider);
+                        PremiumPreviewBottomSheet premiumPreviewBottomSheet = new PremiumPreviewBottomSheet(ProfileActivityV2.this, currentAccount, user, resourcesProvider);
                         int[] coords = new int[2];
                         textView.getLocationOnScreen(coords);
                         premiumPreviewBottomSheet.startEnterFromX = textView.rightDrawableX;
@@ -9847,7 +9870,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
             @Override
             public void setAutoDeleteHistory(int time, int action) {
-                ProfileActivity.this.setAutoDeleteHistory(time, action);
+                ProfileActivityV2.this.setAutoDeleteHistory(time, action);
             }
 
             @Override
@@ -9964,7 +9987,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             }
             if (grantResults.length > 0 && allGranted) {
                 ChatObject.Call call = getMessagesController().getGroupCall(chatId, false);
-                VoIPHelper.startCall(currentChat, null, null, call == null, getParentActivity(), ProfileActivity.this, getAccountInstance());
+                VoIPHelper.startCall(currentChat, null, null, call == null, getParentActivity(), ProfileActivityV2.this, getAccountInstance());
             } else {
                 VoIPHelper.permissionDenied(getParentActivity(), null, requestCode);
             }
@@ -10388,7 +10411,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
     void openUrl(String url, Browser.Progress progress) {
         if (url.startsWith("@")) {
-            getMessagesController().openByUserName(url.substring(1), ProfileActivity.this, 0, progress);
+            getMessagesController().openByUserName(url.substring(1), ProfileActivityV2.this, 0, progress);
         } else if (url.startsWith("#") || url.startsWith("$")) {
             DialogsActivity fragment = new DialogsActivity(null);
             fragment.setSearchString(url);
@@ -10679,10 +10702,12 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
     }
 
+    @Override
     public void scrollToSharedMedia() {
         scrollToSharedMedia(false);
     }
 
+    @Override
     public void scrollToSharedMedia(boolean animated) {
         if (sharedMediaRow >= 0) {
             if (animated) {
@@ -11229,7 +11254,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                     getMessagesController().invalidateContentSettings();
                     getConnectionsManager().sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
                         if (res instanceof TLRPC.TL_boolTrue) {
-                            BulletinFactory.of(ProfileActivity.this)
+                            BulletinFactory.of(ProfileActivityV2.this)
                                     .createSimpleBulletin(R.raw.contact_check, LocaleController.getString(R.string.PrivacyBirthdaySetDone))
                                     .setDuration(Bulletin.DURATION_PROLONG).show();
                         } else {
@@ -11253,7 +11278,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                                     );
                                 }
                             } else {
-                                BulletinFactory.of(ProfileActivity.this)
+                                BulletinFactory.of(ProfileActivityV2.this)
                                         .createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.UnknownError))
                                         .show();
                             }

@@ -126,11 +126,11 @@ class ListAdapter extends RecyclerListView.SelectionAdapter {
             VIEW_TYPE_SHADOW_TEXT = 26,
             VIEW_TYPE_COLORFUL_TEXT = 27;
 
-    private final ProfileActivity parent;
+    private final ProfileActivityV2 parent;
     private final HashMap<TLRPC.TL_username, ClickableSpan> usernameSpans = new HashMap<TLRPC.TL_username, ClickableSpan>();
     private final Context mContext;
 
-    public ListAdapter(ProfileActivity parent) {
+    public ListAdapter(ProfileActivityV2 parent) {
         this.parent = parent;
         mContext = parent.getContext();
     }

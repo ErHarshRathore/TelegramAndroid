@@ -20,6 +20,7 @@ import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.TextDetailCell;
 import org.telegram.ui.Components.CubicBezierInterpolator;
@@ -52,9 +53,9 @@ public class ProfileBirthdayEffect extends View {
     public PointF sourcePoint = new PointF();
 
     public ProfileBirthdayEffect(IProfileActivity profileActivity, BirthdayEffectFetcher fetcher) {
-        super(profileActivity.getContext());
+        super(((BaseFragment) profileActivity).getContext());
 
-        this.currentAccount = profileActivity.getCurrentAccount();
+        this.currentAccount = ((BaseFragment) profileActivity).getCurrentAccount();
         this.dialogId = profileActivity.getDialogId();
         this.profileActivity = profileActivity;
         this.fetcher = fetcher;

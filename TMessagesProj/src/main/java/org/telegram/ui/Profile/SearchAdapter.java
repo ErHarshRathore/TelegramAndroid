@@ -75,7 +75,7 @@ import java.util.Set;
 
 class SearchAdapter extends RecyclerListView.SelectionAdapter {
 
-    private final ProfileActivity parent;
+    private final ProfileActivityV2 parent;
     private final Context mContext;
     SearchAdapter.SearchResult[] searchArray;
     ArrayList<MessagesController.FaqSearchResult> faqSearchArray = new ArrayList<>();
@@ -89,7 +89,7 @@ class SearchAdapter extends RecyclerListView.SelectionAdapter {
     private Runnable searchRunnable;
     private boolean loadingFaqPage;
 
-    public SearchAdapter(ProfileActivity parent) {
+    public SearchAdapter(ProfileActivityV2 parent) {
         this.parent = parent;
         mContext = parent.getContext();
         searchArray = onCreateSearchArray();

@@ -24,7 +24,7 @@ import java.util.Arrays;
 class OverlaysView extends View implements ProfileGalleryView.Callback {
 
     final ValueAnimator animator;
-    private final ProfileActivity parent;
+    private final ProfileActivityV2 parent;
     private final int statusBarHeight;
     private final Rect topOverlayRect = new Rect();
     private final Rect bottomOverlayRect = new Rect();
@@ -53,7 +53,7 @@ class OverlaysView extends View implements ProfileGalleryView.Callback {
     private float currentLoadingAnimationProgress;
     private int currentLoadingAnimationDirection = 1;
 
-    public OverlaysView(ProfileActivity parent) {
+    public OverlaysView(ProfileActivityV2 parent) {
         super(parent.getContext());
         this.parent = parent;
         setVisibility(GONE);

@@ -79,6 +79,7 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -603,7 +604,7 @@ public class ChatRightsEditActivity extends BaseFragment implements Notification
             if (position == 0) {
                 Bundle args = new Bundle();
                 args.putLong("user_id", currentUser.id);
-                presentFragment(new ProfileActivity(args));
+                presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
             } else if (position == removeAdminRow) {
                 if (currentType == TYPE_ADMIN) {
                     MessagesController.getInstance(currentAccount).setUserAdminRole(chatId, currentUser, new TLRPC.TL_chatAdminRights(), currentRank, isChannel, getFragmentForAlert(0), isAddingNew, false, null, null);

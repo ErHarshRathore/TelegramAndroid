@@ -5,9 +5,9 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
 
 class ClippedListView extends RecyclerListView implements StoriesListPlaceProvider.ClippedView {
-    private final ProfileActivity parent;
+    private final ProfileActivityV2 parent;
 
-    public ClippedListView(ProfileActivity parent) {
+    public ClippedListView(ProfileActivityV2 parent) {
         super(parent.getContext());
         this.parent = parent;
     }

@@ -56,6 +56,7 @@ import org.telegram.ui.Components.Premium.boosts.cells.statistics.GiveawayCell;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.ScrollSlidingTextTabStrip;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 
@@ -374,7 +375,7 @@ public class ChannelBoostLayout extends FrameLayout {
                     layout.textView.setMaxLines(2);
                     Bulletin.make(fragment, layout, Bulletin.DURATION_LONG).show();
                 } else if (!boost.gift && !boost.giveaway) {
-                    fragment.presentFragment(ProfileActivity.of(cell.getDialogId()));
+                    fragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(cell.getDialogId()));
                 }
             }
             if (view instanceof TextCell) {

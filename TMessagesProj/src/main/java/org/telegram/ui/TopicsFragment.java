@@ -129,6 +129,8 @@ import org.telegram.ui.Components.UnreadCounterTextView;
 import org.telegram.ui.Components.ViewPagerFixed;
 import org.telegram.ui.Components.voip.VoIPHelper;
 import org.telegram.ui.Delegates.ChatActivityMemberRequestsDelegate;
+import org.telegram.ui.Profile.IProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1482,9 +1484,12 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
         }
         Bundle args = new Bundle();
         args.putLong("chat_id", chatId);
-        ProfileActivity fragment = new ProfileActivity(args, avatarContainer.getSharedMediaPreloader());
-        fragment.setChatInfo(chatFull);
-        fragment.setPlayProfileAnimation(fragmentView.getMeasuredHeight() > fragmentView.getMeasuredWidth() && avatarContainer.getAvatarImageView().getImageReceiver().hasImageLoaded() && byAvatar ? 2 : 1);
+        BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args, avatarContainer.getSharedMediaPreloader());
+        if (fragment instanceof IProfileActivity) {
+            ((IProfileActivity) fragment).setChatInfo(chatFull);
+            ((IProfileActivity) fragment).setPlayProfileAnimation(fragmentView.getMeasuredHeight() > fragmentView.getMeasuredWidth() && avatarContainer.getAvatarImageView().getImageReceiver().hasImageLoaded() && byAvatar ? 2 : 1);
+        }
+
         presentFragment(fragment);
     }
 

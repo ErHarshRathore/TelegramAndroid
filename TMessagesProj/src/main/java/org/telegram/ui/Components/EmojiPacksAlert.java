@@ -77,7 +77,7 @@ import org.telegram.ui.Components.Premium.PremiumFeatureBottomSheet;
 import org.telegram.ui.ContentPreviewViewer;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PremiumPreviewFragment;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.IProfileActivity;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -1486,8 +1486,8 @@ public class EmojiPacksAlert extends BottomSheet implements NotificationCenter.N
                         UndoView undoView;
                         if (fragment instanceof ChatActivity) {
                             undoView = ((ChatActivity) fragment).getUndoView();
-                        } else if (fragment instanceof ProfileActivity) {
-                            undoView = ((ProfileActivity) fragment).getUndoView();
+                        } else if (fragment instanceof IProfileActivity) {
+                            undoView = ((IProfileActivity) fragment).getUndoView();
                         } else {
                             undoView = null;
                         }

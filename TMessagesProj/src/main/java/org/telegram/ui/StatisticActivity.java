@@ -96,6 +96,8 @@ import org.telegram.ui.Components.RadialProgressView;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.ViewPagerFixed;
+import org.telegram.ui.Profile.IProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.recorder.KeyboardNotifier;
@@ -503,7 +505,7 @@ public class StatisticActivity extends BaseFragment implements NotificationCente
             BaseFragment profileFragment = fragmentStack.size() >= 2 ? fragmentStack.get(fragmentStack.size() - 2) : null;
             if (isGiveaway) {
                 BaseFragment chatFragment = fragmentStack.size() >= 3 ? fragmentStack.get(fragmentStack.size() - 3) : null;
-                if (profileFragment instanceof ProfileActivity) {
+                if (profileFragment instanceof IProfileActivity) {
                     getParentLayout().removeFragmentFromStack(profileFragment);
                 }
                 finishFragment();
@@ -512,7 +514,7 @@ public class StatisticActivity extends BaseFragment implements NotificationCente
                 }
             } else {
                 finishFragment();
-                if (profileFragment instanceof ProfileActivity) {
+                if (profileFragment instanceof IProfileActivity) {
                     BoostDialogs.showBulletin(profileFragment, chat, false);
                 }
             }
@@ -3180,7 +3182,7 @@ public class StatisticActivity extends BaseFragment implements NotificationCente
             Bundle bundle = new Bundle();
             bundle.putLong("user_id", user.id);
             MessagesController.getInstance(UserConfig.selectedAccount).putUser(user, false);
-            fragment.presentFragment(new ProfileActivity(bundle));
+            fragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(bundle));
         }
 
         public void onLongClick(TLRPC.ChatFull chat, StatisticActivity fragment, AlertDialog[] progressDialog) {

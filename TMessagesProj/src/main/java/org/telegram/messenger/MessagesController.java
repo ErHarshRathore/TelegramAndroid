@@ -97,7 +97,7 @@ import org.telegram.ui.EditWidgetActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.LoginActivity;
 import org.telegram.ui.PremiumPreviewFragment;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.SecretMediaViewer;
 import org.telegram.ui.Stars.BotStarsController;
 import org.telegram.ui.Stars.StarsController;
@@ -21096,7 +21096,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 args.putLong("user_id", user.id);
             }
             if (type == 0) {
-                fragment.presentFragment(new ProfileActivity(args));
+                fragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
             } else if (type == 2) {
                 if (ChatObject.isForum(chat)) {
                     fragment.presentFragment(TopicsFragment.getTopicsOrChat(fragment, args), !doNotCloseLast, true);

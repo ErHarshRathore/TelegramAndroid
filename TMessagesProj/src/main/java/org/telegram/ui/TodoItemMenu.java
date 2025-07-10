@@ -70,6 +70,7 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.BaseCell;
 import org.telegram.ui.Cells.ChatActionCell;
@@ -94,6 +95,7 @@ import org.telegram.ui.Components.ThanosEffect;
 import org.telegram.ui.Components.TimerParticles;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.Components.ViewPagerFixed;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stories.recorder.HintView2;
 
 import java.io.File;
@@ -608,7 +610,7 @@ public class TodoItemMenu extends Dialog {
                         } else if (object instanceof TLRPC.Chat) {
                             args.putLong("chat_id", ((TLRPC.Chat) object).id);
                         }
-                        ProfileActivity fragment = new ProfileActivity(args);
+                        BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
                         chatActivity.presentFragment(fragment);
                         dismiss(false);
                         return;

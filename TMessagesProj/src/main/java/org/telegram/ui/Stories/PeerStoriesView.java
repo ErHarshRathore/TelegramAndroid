@@ -168,7 +168,7 @@ import org.telegram.ui.MessageStatisticActivity;
 import org.telegram.ui.NotificationsCustomSettingsActivity;
 import org.telegram.ui.PinchToZoomHelper;
 import org.telegram.ui.PremiumPreviewFragment;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.ReportBottomSheet;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
@@ -1129,7 +1129,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                 storyViewer.presentFragment(mediaActivity);
             } else {
                 if (dialogId > 0) {
-                    storyViewer.presentFragment(ProfileActivity.of(dialogId));
+                    storyViewer.presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(dialogId));
                 } else {
                     storyViewer.presentFragment(ChatActivity.of(dialogId));
                 }
@@ -4354,7 +4354,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                                 args.putInt("message_id", reply.messageId);
                                 storyViewer.presentFragment(new ChatActivity(args));
                             } else {
-                                storyViewer.presentFragment(new ProfileActivity(args));
+                                storyViewer.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                             }
                         } else {
                             BulletinFactory.of(storyContainer, resourcesProvider)
@@ -4398,7 +4398,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                         } else {
                             args.putLong("chat_id", -peerId);
                         }
-                        storyViewer.presentFragment(new ProfileActivity(args));
+                        storyViewer.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                     });
 
                     SpannableString dot = new SpannableString(".");

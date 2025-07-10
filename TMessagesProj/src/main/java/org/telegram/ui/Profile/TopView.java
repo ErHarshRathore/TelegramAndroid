@@ -31,7 +31,7 @@ class TopView extends FrameLayout {
     public final AnimatedFloat emojiLoadedT = new AnimatedFloat(this, 0, 440, CubicBezierInterpolator.EASE_OUT_QUINT);
     public final AnimatedFloat emojiFullT = new AnimatedFloat(this, 0, 440, CubicBezierInterpolator.EASE_OUT_QUINT);
     private final Paint paint = new Paint();
-    private final ProfileActivity parent;
+    private final ProfileActivityV2 parent;
     private final AnimatedFloat hasColorAnimated = new AnimatedFloat(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
     private final AnimatedColor color1Animated = new AnimatedColor(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
     private final AnimatedColor color2Animated = new AnimatedColor(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
@@ -48,7 +48,7 @@ class TopView extends FrameLayout {
     private boolean emojiIsCollectible;
     private boolean emojiLoaded;
 
-    public TopView(ProfileActivity parent) {
+    public TopView(ProfileActivityV2 parent) {
         super(parent.getContext());
         this.parent = parent;
         setWillNotDraw(false);

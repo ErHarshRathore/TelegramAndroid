@@ -31,6 +31,9 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.Forum.ForumUtilities;
 import org.telegram.ui.DialogsActivity;
+import org.telegram.ui.Profile.IProfileActivity;
+import org.telegram.ui.Profile.ProfileActivityV2;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.TopicsFragment;
 
@@ -178,9 +181,9 @@ public class BackButtonMenu {
                         if (nextFragment instanceof ChatActivity) {
                             nextFragmentDialogId = ((ChatActivity) nextFragment).getDialogId();
                             nextFragmentTopicId = ((ChatActivity) nextFragment).getTopicId();
-                        } else if (nextFragment instanceof ProfileActivity) {
-                            nextFragmentDialogId = ((ProfileActivity) nextFragment).getDialogId();
-                            nextFragmentTopicId = ((ProfileActivity) nextFragment).getTopicId();
+                        } else if (nextFragment instanceof IProfileActivity) {
+                            nextFragmentDialogId = ((IProfileActivity) nextFragment).getDialogId();
+                            nextFragmentTopicId = ((IProfileActivity) nextFragment).getTopicId();
                         }
                     }
                     if (nextFragmentDialogId != null && nextFragmentDialogId != pDialog.dialogId || topic != null && nextFragmentTopicId != null && topic.id != nextFragmentTopicId) {
@@ -308,10 +311,10 @@ public class BackButtonMenu {
             } else {
                 fragment.presentFragment(new ChatActivity(bundle), true);
             }
-        } else if (dialog.activity == ProfileActivity.class) {
+        } else if (dialog.activity == ProfileActivity.class || dialog.activity == ProfileActivityV2.class) {
             Bundle bundle = new Bundle();
             bundle.putLong("dialog_id", dialog.dialogId);
-            fragment.presentFragment(new ProfileActivity(bundle), true);
+            fragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(bundle), true);
         } if (dialog.activity == TopicsFragment.class) {
             Bundle bundle = new Bundle();
             bundle.putLong("chat_id", dialog.chat.id);
@@ -351,6 +354,16 @@ public class BackButtonMenu {
                     dialogId = chatActivity.getDialogId();
                     folderId = chatActivity.getDialogFolderId();
                     filterId = chatActivity.getDialogFilterId();
+                } else if (fragment instanceof ProfileActivityV2) {
+                    activity = ProfileActivityV2.class;
+                    ProfileActivityV2 profileActivity = (ProfileActivityV2) fragment;
+                    chat = profileActivity.getCurrentChat();
+                    try {
+                        user = profileActivity.getUserInfo().user;
+                    } catch (Exception ignore) {}
+                    dialogId = profileActivity.getDialogId();
+                    folderId = 0;
+                    filterId = 0;
                 } else if (fragment instanceof ProfileActivity) {
                     activity = ProfileActivity.class;
                     ProfileActivity profileActivity = (ProfileActivity) fragment;

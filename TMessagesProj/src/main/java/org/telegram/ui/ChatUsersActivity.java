@@ -86,6 +86,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SlideChooseView;
 import org.telegram.ui.Components.StickerEmptyView;
 import org.telegram.ui.Components.UndoView;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1309,7 +1310,7 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
                         } else {
                             args.putLong("chat_id", -peerId);
                         }
-                        presentFragment(new ProfileActivity(args));
+                        presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                     } else {
                         if (bannedRights == null) {
                             bannedRights = new TLRPC.TL_chatBannedRights();

@@ -29,13 +29,13 @@ class PagerIndicatorView extends View {
     private final ValueAnimator animator;
     private final float[] animatorValues = new float[]{0f, 1f};
 
-    private final ProfileActivity parent;
+    private final ProfileActivityV2 parent;
 
     private final PagerAdapter adapter;
 
     private boolean isIndicatorVisible;
 
-    public PagerIndicatorView(ProfileActivity parent) {
+    public PagerIndicatorView(ProfileActivityV2 parent) {
         super(parent.getContext());
         this.parent = parent;
         adapter = parent.avatarsViewPager.getAdapter();
@@ -158,11 +158,11 @@ class PagerIndicatorView extends View {
         if (parent.isPulledDown) {
             int position = parent.avatarsViewPager.getRealPosition();
             if (position == 0) {
-                parent.otherItem.hideSubItem(ProfileActivity.set_as_main);
-                parent.otherItem.showSubItem(ProfileActivity.add_photo);
+                parent.otherItem.hideSubItem(ProfileActivityV2.set_as_main);
+                parent.otherItem.showSubItem(ProfileActivityV2.add_photo);
             } else {
-                parent.otherItem.showSubItem(ProfileActivity.set_as_main);
-                parent.otherItem.hideSubItem(ProfileActivity.add_photo);
+                parent.otherItem.showSubItem(ProfileActivityV2.set_as_main);
+                parent.otherItem.hideSubItem(ProfileActivityV2.add_photo);
             }
         }
     }

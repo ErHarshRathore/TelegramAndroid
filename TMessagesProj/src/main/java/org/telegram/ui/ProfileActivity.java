@@ -155,6 +155,7 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SavedMessagesController;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SvgHelper;
@@ -270,6 +271,7 @@ import org.telegram.ui.Components.VectorAvatarThumbDrawable;
 import org.telegram.ui.Components.voip.VoIPHelper;
 import org.telegram.ui.Gifts.GiftSheet;
 import org.telegram.ui.Profile.IProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stars.BotStarsActivity;
 import org.telegram.ui.Stars.BotStarsController;
 import org.telegram.ui.Stars.ProfileGiftsView;
@@ -796,8 +798,19 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return new ProfileActivity(bundle);
     }
 
+    @Override
     public long getTopicId() {
         return topicId;
+    }
+
+    @Override
+    public boolean isTopic() {
+        return isTopic;
+    }
+
+    @Override
+    public ProfileGiftsView getGiftsView() {
+        return giftsView;
     }
 
     public static class AvatarImageView extends BackupImageView {
@@ -5806,6 +5819,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         AndroidUtilities.updateViewVisibilityAnimated(ttlIconView, visible, 0.8f, fragmentOpened);
     }
 
+    @Override
     public long getDialogId() {
         if (dialogId != 0) {
             return dialogId;
@@ -5855,8 +5869,8 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
                         getParentLayout().removeFragmentFromStack(fragment);
                         i--;
                     }
-                } else if (fragment instanceof ProfileActivity) {
-                    if (fragment != this && ((ProfileActivity) fragment).getDialogId() == getDialogId() && ((ProfileActivity) fragment).isTopic) {
+                } else if (fragment instanceof IProfileActivity) {
+                    if (fragment != this && ((IProfileActivity) fragment).getDialogId() == getDialogId() && ((IProfileActivity) fragment).isTopic()) {
                         getParentLayout().removeFragmentFromStack(fragment);
                         i--;
                     }
@@ -6198,7 +6212,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
             Bundle args = new Bundle();
             args.putLong("user_id", participant.user_id);
             args.putBoolean("preload_messages", true);
-            presentFragment(new ProfileActivity(args));
+            presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
         }
         return true;
     }
@@ -8327,6 +8341,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return super.canBeginSlide();
     }
 
+    @Override
     public UndoView getUndoView() {
         return undoView;
     }
@@ -8351,6 +8366,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         fullyVisible = false;
     }
 
+    @Override
     public void setPlayProfileAnimation(int type) {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         if (!AndroidUtilities.isTablet()) {
@@ -8880,6 +8896,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
     }
 
+    @Override
     public void setChatInfo(TLRPC.ChatFull value) {
         chatInfo = value;
         if (chatInfo != null && chatInfo.migrated_from_chat_id != 0 && mergeDialogId == 0) {
@@ -8911,6 +8928,7 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         return getMessagesController().getStoriesController().hasStories(getDialogId()) && !isTopic;
     }
 
+    @Override
     public void setUserInfo(
         TLRPC.UserFull value,
         ProfileChannelCell.ChannelMessageFetcher channelMessageFetcher,
@@ -8998,6 +9016,11 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
 
     public boolean isChat() {
         return chatId != 0;
+    }
+
+    @Override
+    public SharedMediaLayout getSharedMediaLayout() {
+        return sharedMediaLayout;
     }
 
     private void updateRowsIds() {
@@ -13624,9 +13647,12 @@ public class ProfileActivity extends BaseFragment implements IProfileActivity, N
         }
     }
 
+    @Override
     public void scrollToSharedMedia() {
         scrollToSharedMedia(false);
     }
+
+    @Override
     public void scrollToSharedMedia(boolean animated) {
         if (sharedMediaRow >= 0) {
             if (animated) {

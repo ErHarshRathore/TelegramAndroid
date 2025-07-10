@@ -24,10 +24,10 @@ import java.util.Arrays;
 
 class NestedFrameLayout extends SizeNotifierFrameLayout implements NestedScrollingParent3 {
 
-    private final ProfileActivity parent;
+    private final ProfileActivityV2 parent;
     private final NestedScrollingParentHelper nestedScrollingParentHelper;
 
-    public NestedFrameLayout(ProfileActivity parent) {
+    public NestedFrameLayout(ProfileActivityV2 parent) {
         super(parent.getContext());
         Log.i("TagHarsh", "NestedFrameLayout::constructor: parent=" + parent);
         this.parent = parent;

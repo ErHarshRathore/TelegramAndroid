@@ -215,7 +215,7 @@ public class ProfileActivityLayout extends FrameLayout {
     /** topViewContainer initialization */
     private void initializeTopViewContainer() {
         topViewContainer = new FrameLayout(getContext());
-        topViewContainer.setBackgroundColor(0x44ff0f0f);
+        topViewContainer.setBackgroundColor(0x22ffffff);
         topViewContainer.setPadding(0, 0, 0, 100);
 
         Log.i(TAG, "initializeTopViewContainer");
@@ -228,7 +228,9 @@ public class ProfileActivityLayout extends FrameLayout {
 
         FrameLayout avatarImageView = new FrameLayout(getContext());
         avatarImageView.setBackgroundColor(0xff0000ff);
-        avatarImageView.setLayoutParams(LayoutHelper.createFrame(144, 144));
+
+        int size = ProfileScreenFeatureConfigs.profileActivityV2Configs.UI_PROFILE_SCROLL_ANIMATION_MIDDLE_STATE_AVATAR_SIZE_DP;
+        avatarImageView.setLayoutParams(LayoutHelper.createFrame(size, size));
         avatarImageViewFrame.addView(avatarImageView);
 
         Log.i(TAG, "initializeAvatarImageViewFrame");

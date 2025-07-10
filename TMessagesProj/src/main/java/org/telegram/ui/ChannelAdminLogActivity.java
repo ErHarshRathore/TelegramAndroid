@@ -146,6 +146,8 @@ import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.URLSpanReplacement;
 import org.telegram.ui.Components.URLSpanUserMention;
 import org.telegram.ui.Components.UndoView;
+import org.telegram.ui.Profile.IProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -2997,8 +2999,11 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                         Bundle args = new Bundle();
                         args.putLong("user_id", user.id);
                         addCanBanUser(args, user.id);
-                        ProfileActivity fragment = new ProfileActivity(args);
-                        fragment.setPlayProfileAnimation(0);
+                        BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
+
+                        if (fragment instanceof IProfileActivity)
+                            ((IProfileActivity) fragment).setPlayProfileAnimation(0);
+
                         presentFragment(fragment);
                     }
 
@@ -3296,8 +3301,12 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
                             Bundle args = new Bundle();
                             args.putLong("user_id", uid);
                             addCanBanUser(args, uid);
-                            ProfileActivity fragment = new ProfileActivity(args);
-                            fragment.setPlayProfileAnimation(0);
+
+                            BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
+
+                            if (fragment instanceof IProfileActivity)
+                                ((IProfileActivity) fragment).setPlayProfileAnimation(0);
+
                             presentFragment(fragment);
                         }
                     }

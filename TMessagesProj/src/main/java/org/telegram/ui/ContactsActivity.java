@@ -103,6 +103,7 @@ import org.telegram.ui.Components.NumberTextView;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.StickerEmptyView;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
 
 import java.util.ArrayList;
@@ -692,7 +693,7 @@ public class ContactsActivity extends BaseFragment implements NotificationCenter
                                     presentFragment(ChatActivity.of(dialogId));
                                 })
                                 .add(R.drawable.msg_openprofile, LocaleController.getString(R.string.OpenProfile), () -> {
-                                    presentFragment(ProfileActivity.of(dialogId));
+                                    presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(dialogId));
                                 })
                                 .addIf(!muted, R.drawable.msg_mute, LocaleController.getString(R.string.NotificationsStoryMute), () -> {
                                     MessagesController.getNotificationsSettings(currentAccount).edit().putBoolean("stories_" + key, false).apply();

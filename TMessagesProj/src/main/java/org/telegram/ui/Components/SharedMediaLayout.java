@@ -134,6 +134,8 @@ import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.Profile.IProfileActivity;
+import org.telegram.ui.Profile.ProfileActivityV2;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stories.StoriesController;
@@ -764,8 +766,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                         }
                     });
                 }
-            } else if (fragment instanceof org.telegram.ui.ProfileActivity) {
-                ProfileActivity profileActivity = (ProfileActivity) fragment;
+            } else if (fragment instanceof ProfileActivityV2) {
+                ProfileActivityV2 profileActivity = (ProfileActivityV2) fragment;
                 if (profileActivity.saved) {
                     dialogId = profileActivity.getUserConfig().getClientUserId();
                     topicId = profileActivity.getDialogId();
@@ -785,8 +787,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                         });
                     }
                 }
-            } else if (fragment instanceof org.telegram.ui.Profile.ProfileActivity) {
-                org.telegram.ui.Profile.ProfileActivity profileActivity = (org.telegram.ui.Profile.ProfileActivity) fragment;
+            } else if (fragment instanceof ProfileActivity) {
+                ProfileActivity profileActivity = (ProfileActivity) fragment;
                 if (profileActivity.saved) {
                     dialogId = profileActivity.getUserConfig().getClientUserId();
                     topicId = profileActivity.getDialogId();
@@ -2984,7 +2986,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                         }
                         Bundle args = new Bundle();
                         args.putLong("user_id", user_id);
-                        profileActivity.presentFragment(new ProfileActivity(args));
+                        profileActivity.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                     }
                 } else if (mediaPage.selectedType == TAB_COMMON_GROUPS && view instanceof ProfileSearchCell) {
                     TLRPC.Chat chat = ((ProfileSearchCell) view).getChat();
@@ -4696,8 +4698,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                     }
                     fragment1.finishFragment();
                     UndoView undoView = null;
-                    if (profileActivity instanceof ProfileActivity) {
-                        undoView = ((ProfileActivity) profileActivity).getUndoView();
+                    if (profileActivity instanceof IProfileActivity) {
+                        undoView = ((IProfileActivity) profileActivity).getUndoView();
                     }
                     if (undoView != null) {
                         if (dids.size() == 1) {
@@ -6876,7 +6878,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                     if (forward) {
                         storiesList.load(false, 30);
                     }
-                }).addBottomClip(profileActivity instanceof ProfileActivity && ((ProfileActivity) profileActivity).myProfile ? dp(68) : 0));
+                }).addBottomClip(profileActivity instanceof IProfileActivity && ((IProfileActivity) profileActivity).isMyProfile() ? dp(68) : 0));
             }
         }
         updateForwardItem();
@@ -8721,7 +8723,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 return;
             }
             final BaseFragment fragment = new ChatActivity(args);
-            if (profileActivity instanceof ProfileActivity) {
+            if (profileActivity instanceof ProfileActivityV2) {
+                ((ProfileActivityV2) profileActivity).prepareBlurBitmap();
+            } else if (profileActivity instanceof ProfileActivity) {
                 ((ProfileActivity) profileActivity).prepareBlurBitmap();
             }
 
