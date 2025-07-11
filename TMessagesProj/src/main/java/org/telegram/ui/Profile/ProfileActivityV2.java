@@ -2093,7 +2093,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                         overlaysView.setOverlaysVisible();
                         overlaysView.setAlphaValue(1.0f, false);
                         avatarImage.setForegroundAlpha(1.0f);
-                        avatarContainer.setVisibility(View.GONE);
                         avatarsViewPager.resetCurrentItem();
                         avatarsViewPager.setVisibility(View.VISIBLE);
                         if (showStatusButton != null) {
@@ -4095,19 +4094,11 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                 updateCollectibleHint();
             }
         };
-        // TODO @Harsh - remove the custom layer
-//        FrameLayout customOverlay3 = new FrameLayout(context);
-//        customOverlay3.setBackgroundColor(0x7700ff00);
-//        avatarContainer2.addView(customOverlay3, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
-
 
         fallbackImage = new ImageReceiver(avatarContainer2);
         fallbackImage.setRoundRadius(AndroidUtilities.dp(11));
         AndroidUtilities.updateViewVisibilityAnimated(avatarContainer2, true, 1f, false);
         frameLayout.addView(avatarContainer2, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.START, 0, 0, 0, 0));
-        avatarContainer.setPivotX(0);
-        avatarContainer.setPivotY(0);
-        avatarContainer2.addView(avatarContainer, LayoutHelper.createFrame(42, 42, Gravity.TOP | Gravity.LEFT, 64, 0, 0, 0));
         avatarImage = new ProfileActivity.AvatarImageView(context) {
             @Override
             public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
@@ -4132,14 +4123,7 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
             }
         };
         avatarImage.getImageReceiver().setAllowDecodeSingleFrame(true);
-        avatarImage.setRoundRadius(getSmallAvatarRoundRadius());
-        avatarImage.setPivotX(0);
-        avatarImage.setPivotY(0);
         avatarContainer.addView(avatarImage, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
-//        // TODO @Harsh - remove the custom layer
-        FrameLayout customOverlay2 = new FrameLayout(context);
-        customOverlay2.setBackgroundColor(0x7700ffff);
-        avatarContainer.addView(customOverlay2, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
 
         avatarImage.setOnClickListener(v -> {
             if (avatarBig != null) {
@@ -4208,6 +4192,8 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
         avatarProgressView.setProgressColor(0xffffffff);
         avatarProgressView.setNoProgress(false);
         avatarContainer.addView(avatarProgressView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+
+        profileActivityLayout.bindAvatarContainer(avatarContainer, avatarImage);
 
         timeItem = new ImageView(context);
         timeItem.setPadding(AndroidUtilities.dp(10), AndroidUtilities.dp(10), AndroidUtilities.dp(5), AndroidUtilities.dp(5));
@@ -4899,11 +4885,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
         final int newTop = ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0);
         final float value = currentExpandAnimatorValue = AndroidUtilities.lerp(expandAnimatorValues, currentExpanAnimatorFracture = animatedFracture);
         checkPhotoDescriptionAlpha();
-        avatarContainer.setScaleX(avatarScale);
-        avatarContainer.setScaleY(avatarScale);
-        avatarContainer.setTranslationX(AndroidUtilities.lerp(avatarX, 0f, value));
-        avatarContainer.setTranslationY(AndroidUtilities.lerp((float) Math.ceil(avatarY), 0f, value));
-        avatarImage.setRoundRadius((int) AndroidUtilities.lerp(getSmallAvatarRoundRadius(), 0f, value));
         if (storyView != null) {
             storyView.setExpandProgress(value);
         }
@@ -5001,11 +4982,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
 
         avatarImage.setForegroundAlpha(value);
 
-        final FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) avatarContainer.getLayoutParams();
-        params.width = (int) AndroidUtilities.lerp(AndroidUtilities.dpf2(42f), listView.getMeasuredWidth() / avatarScale, value);
-        params.height = (int) AndroidUtilities.lerp(AndroidUtilities.dpf2(42f), (extraHeight + newTop) / avatarScale, value);
-        params.leftMargin = (int) AndroidUtilities.lerp(AndroidUtilities.dpf2(64f), 0f, value);
-        avatarContainer.requestLayout();
 
         updateCollectibleHint();
     }
@@ -6546,7 +6522,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                             public void onAnimationEnd(Animator animation) {
                                 expandAnimator.removeListener(this);
                                 topView.setBackgroundColor(Color.BLACK);
-                                avatarContainer.setVisibility(View.GONE);
                                 avatarsViewPager.setVisibility(View.VISIBLE);
                             }
                         });
@@ -6591,8 +6566,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                         overlaysView.setOverlaysVisible(false, durationFactor);
                         avatarsViewPagerIndicatorView.refreshVisibility(durationFactor);
                         expandAnimator.cancel();
-                        avatarImage.getImageReceiver().setAllowStartAnimation(true);
-                        avatarImage.getImageReceiver().startAnimation();
 
                         float value = AndroidUtilities.lerp(expandAnimatorValues, currentExpanAnimatorFracture);
                         expandAnimatorValues[0] = value;
@@ -6621,8 +6594,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                         avatarsViewPager.setVisibility(View.GONE);
                         expandAnimator.start();
                     }
-                    avatarContainer.setScaleX(avatarScale);
-                    avatarContainer.setScaleY(avatarScale);
 
                     if (expandAnimator == null || !expandAnimator.isRunning()) {
                         refreshNameAndOnlineXY();
@@ -6662,9 +6633,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                     giftsView.setExpandProgress(1f);
                 }
 
-                avatarImage.setRoundRadius((int) AndroidUtilities.lerp(getSmallAvatarRoundRadius(), 0f, avatarAnimationProgress));
-                avatarContainer.setTranslationX(AndroidUtilities.lerp(avX, 0, avatarAnimationProgress));
-                avatarContainer.setTranslationY(AndroidUtilities.lerp((float) Math.ceil(avY), 0f, avatarAnimationProgress));
                 float extra = (avatarContainer.getMeasuredWidth() - AndroidUtilities.dp(42)) * avatarScale;
                 timeItem.setTranslationX(avatarContainer.getX() + AndroidUtilities.dp(16) + extra);
                 timeItem.setTranslationY(avatarContainer.getY() + AndroidUtilities.dp(15) + extra);
@@ -6673,9 +6641,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                 starFgItem.setTranslationX(avatarContainer.getX() + AndroidUtilities.dp(28) + extra);
                 starFgItem.setTranslationY(avatarContainer.getY() + AndroidUtilities.dp(24) + extra);
 
-                Log.i("TagHarsh", "expandAnimator::needLayout avatarScale2 -> " + avatarScale);
-                avatarContainer.setScaleX(avatarScale);
-                avatarContainer.setScaleY(avatarScale);
 
                 overlaysView.setAlphaValue(avatarAnimationProgress, false);
                 actionBar.setItemsColor(ColorUtils.blendARGB(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon), Color.WHITE, avatarAnimationProgress), false);
@@ -6716,11 +6681,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                 }
                 float nameScale = 1.0f + 0.12f * diff;
                 if (expandAnimator == null || !expandAnimator.isRunning()) {
-                    Log.i("TagHarsh", "expandAnimator::needLayout avatarScale3 -> " + avatarScale);
-                    avatarContainer.setScaleX(avatarScale);
-                    avatarContainer.setScaleY(avatarScale);
-                    avatarContainer.setTranslationX(avatarX);
-                    avatarContainer.setTranslationY((float) Math.ceil(avatarY));
                     float extra = AndroidUtilities.dp(42) * avatarScale - AndroidUtilities.dp(42);
                     timeItem.setTranslationX(avatarContainer.getX() + AndroidUtilities.dp(16) + extra);
                     timeItem.setTranslationY(avatarContainer.getY() + AndroidUtilities.dp(15) + extra);
@@ -7586,9 +7546,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
     public void setAvatarAnimationProgress(float progress) {
         avatarAnimationProgress = currentExpandAnimatorValue = progress;
         checkPhotoDescriptionAlpha();
-        if (playProfileAnimation == 2) {
-            avatarImage.setProgressToExpand(progress);
-        }
 
         listView.setAlpha(progress);
 
@@ -7815,10 +7772,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                     floatingButtonContainer.setAlpha(0f);
                     animators.add(ObjectAnimator.ofFloat(floatingButtonContainer, View.ALPHA, 1.0f));
                 }
-                if (avatarImage != null) {
-                    avatarImage.setCrossfadeProgress(1.0f);
-                    animators.add(ObjectAnimator.ofFloat(avatarImage, ProfileActivity.AvatarImageView.CROSSFADE_PROGRESS, 0.0f));
-                }
 
                 boolean onlineTextCrosafade = false;
 
@@ -7947,7 +7900,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                         callback.run();
                         return;
                     }
-                    avatarImage.setProgressToExpand(0);
                     listView.setLayerType(View.LAYER_TYPE_NONE, null);
                     if (animatingItem != null) {
                         ActionBarMenu menu = actionBar.createMenu();
@@ -7957,8 +7909,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
                     callback.run();
                     if (playProfileAnimation == 2) {
                         playProfileAnimation = 1;
-                        avatarImage.setForegroundAlpha(1.0f);
-                        avatarContainer.setVisibility(View.GONE);
                         avatarsViewPager.resetCurrentItem();
                         avatarsViewPager.setVisibility(View.VISIBLE);
                     }
@@ -10027,7 +9977,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
 
         needLayout(true);
 
-        avatarContainer.setVisibility(View.VISIBLE);
         nameTextView[1].setVisibility(View.VISIBLE);
         onlineTextView[1].setVisibility(View.VISIBLE);
         onlineTextView[3].setVisibility(View.VISIBLE);
@@ -10154,7 +10103,6 @@ public class ProfileActivityV2 extends BaseFragment implements IProfileActivity,
 
         actionBar.onSearchFieldVisibilityChanged(enter);
 
-        avatarContainer.setVisibility(hide);
         if (storyView != null) {
             storyView.setVisibility(hide);
         }

@@ -98,6 +98,8 @@ public class ProfileScreenFeatureConfigs {
             float targetSize;
             float initialTopPadding;
             float targetTopPadding;
+            float initialBottomPadding;
+            float targetBottomPadding;
         }
     }
 }
