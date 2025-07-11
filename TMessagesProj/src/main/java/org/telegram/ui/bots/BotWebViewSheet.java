@@ -111,7 +111,7 @@ import org.telegram.ui.Components.VerticalPositionAutoAnimator;
 import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PaymentFormActivity;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.web.BotWebViewContainer;
 
@@ -642,7 +642,7 @@ public class BotWebViewSheet extends Dialog implements NotificationCenter.Notifi
                         BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
                         if (lastFragment == null || lastFragment.getParentLayout() == null) return;
                         final INavigationLayout parentLayout = lastFragment.getParentLayout();
-                        lastFragment.presentFragment(ProfileActivity.of(botId));
+                        lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(botId));
                         AndroidUtilities.scrollToFragmentRow(parentLayout, "botPermissionLocation");
                         dismiss(true);
                     }), true));

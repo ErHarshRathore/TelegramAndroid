@@ -78,7 +78,7 @@ import org.telegram.ui.Components.UniversalRecyclerView;
 import org.telegram.ui.FilterCreateActivity;
 import org.telegram.ui.GradientHeaderActivity;
 import org.telegram.ui.LaunchActivity;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stars.BotStarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
@@ -834,7 +834,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
             final BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
             if (lastFragment != null) {
                 sheet.dismiss();
-                lastFragment.presentFragment(ProfileActivity.of(bot.bot_id));
+                lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(bot.bot_id));
             }
         });
         button.setOnClickListener(v -> {
@@ -1212,7 +1212,7 @@ public class ChannelAffiliateProgramsFragment extends GradientHeaderActivity imp
             sheet.dismiss();
             BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
             if (lastFragment != null) {
-                lastFragment.presentFragment(ProfileActivity.of(bot.bot_id));
+                lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(bot.bot_id));
             }
         });
 

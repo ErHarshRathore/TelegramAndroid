@@ -129,7 +129,7 @@ import org.telegram.ui.NotificationsCustomSettingsActivity;
 import org.telegram.ui.NotificationsSettingsActivity;
 import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.PrivacyControlActivity;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.ProfileNotificationsActivity;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
@@ -1570,7 +1570,7 @@ public class AlertsCreator {
             Bundle args = new Bundle();
             args.putLong("user_id", user.id);
             if (fragment.getMessagesController().checkCanOpenChat(args, fragment)) {
-                fragment.presentFragment(new ProfileActivity(args));
+                fragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
             }
 
             builder.getDismissRunnable().run();
@@ -1691,7 +1691,7 @@ public class AlertsCreator {
             Bundle args = new Bundle();
             args.putLong("user_id", user.id);
             if (fragment.getMessagesController().checkCanOpenChat(args, fragment)) {
-                fragment.presentFragment(new ProfileActivity(args));
+                fragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
             }
 
             builder.getDismissRunnable().run();

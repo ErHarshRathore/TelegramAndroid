@@ -42,6 +42,7 @@ import org.telegram.ui.Components.EmptyTextProgressView;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 
 import java.util.ArrayList;
 
@@ -229,7 +230,7 @@ public class PrivacyUsersActivity extends BaseFragment implements NotificationCe
                 if (currentType == TYPE_BLOCKED) {
                     Bundle args = new Bundle();
                     args.putLong("user_id", getMessagesController().blockePeers.keyAt(position - usersStartRow));
-                    presentFragment(new ProfileActivity(args));
+                    presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                 } else {
                     Bundle args = new Bundle();
                     long uid = uidArray.get(position - usersStartRow);
@@ -238,7 +239,7 @@ public class PrivacyUsersActivity extends BaseFragment implements NotificationCe
                     } else {
                         args.putLong("chat_id", -uid);
                     }
-                    presentFragment(new ProfileActivity(args));
+                    presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                 }
             }
         });

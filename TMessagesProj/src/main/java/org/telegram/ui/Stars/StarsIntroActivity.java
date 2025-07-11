@@ -149,7 +149,7 @@ import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PhotoViewer;
 import org.telegram.ui.PostSuggestionsEditActivity;
 import org.telegram.ui.PrivacyControlActivity;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.bots.AffiliateProgramFragment;
@@ -4011,7 +4011,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                                 args.putBoolean("my_profile", true);
                             }
                             args.putBoolean("open_gifts", true);
-                            lastFragment.presentFragment(new ProfileActivity(args));
+                            lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                         }
                     });
                 }
@@ -4026,7 +4026,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                                 args.putBoolean("my_profile", true);
                             }
                             args.putBoolean("open_gifts", true);
-                            lastFragment.presentFragment(new ProfileActivity(args));
+                            lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                         }
                     });
                 }
@@ -4062,7 +4062,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                             args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
                             args.putBoolean("my_profile", true);
                             args.putBoolean("open_gifts", true);
-                            lastFragment.presentFragment(new ProfileActivity(args));
+                            lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                         }
                     });
                 } else { // sent
@@ -4075,7 +4075,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                                 args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
                                 args.putBoolean("my_profile", true);
                                 args.putBoolean("open_gifts", true);
-                                lastFragment.presentFragment(new ProfileActivity(args));
+                                lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                             }
                         });
                     }
@@ -4123,14 +4123,14 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                     sheet[0].dismiss();
                     final BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
                     if (lastFragment != null) {
-                        lastFragment.presentFragment(ProfileActivity.of(channelId));
+                        lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(channelId));
                     }
                 });
                 tableView.addRowUser(getString(R.string.StarAffiliateReferredUser), currentAccount, referredUserId, () -> {
                     sheet[0].dismiss();
                     final BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
                     if (lastFragment != null) {
-                        lastFragment.presentFragment(ProfileActivity.of(referredUserId));
+                        lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(referredUserId));
                     }
                 });
                 tableView.addRow(getString(R.string.StarAffiliateCommission), percents(transaction.starref_commission_permille));
@@ -4147,7 +4147,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                     sheet[0].dismiss();
                     final BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
                     if (lastFragment != null) {
-                        lastFragment.presentFragment(ProfileActivity.of(botId));
+                        lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivityOf(botId));
                     }
                 });
             } else if (giveaway) {
@@ -4169,7 +4169,7 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                         final Bundle args = new Bundle();
                         args.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
                         args.putBoolean("my_profile", true);
-                        lastFragment.presentFragment(new ProfileActivity(args));
+                        lastFragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                     }
                 });
                 tableView.addRowLink(getString(R.string.StarGiveawayReason), getString(R.string.StarGiveawayReasonLink), () -> {

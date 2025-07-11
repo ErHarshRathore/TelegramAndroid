@@ -74,7 +74,7 @@ import org.telegram.ui.Components.StickerEmptyView;
 import org.telegram.ui.Components.TypefaceSpan;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.MemberRequestsActivity;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -249,7 +249,7 @@ public class MemberRequestsDelegate implements MemberRequestCell.OnClickListener
                     isNeedRestoreList = true;
                     fragment.dismissCurrentDialog();
                     Bundle args = new Bundle();
-                    ProfileActivity profileActivity = new ProfileActivity(args);
+                    BaseFragment profileActivity = ProfileScreenFeatureConfigs.getProfileActivity(args);
                     args.putLong("user_id", user.id);
                     args.putBoolean("removeFragmentOnChatOpen", false);
                     fragment.presentFragment(profileActivity);

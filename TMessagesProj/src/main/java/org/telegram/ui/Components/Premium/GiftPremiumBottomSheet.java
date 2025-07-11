@@ -46,7 +46,7 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PremiumPreviewFragment;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.IProfileActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -280,7 +280,7 @@ public class GiftPremiumBottomSheet extends BottomSheetWithRecyclerListView impl
                     if (lastChatActivity.getDialogId() != user.id) {
                         fragment.removeSelfFromStack();
                     }
-                } else if (fragment instanceof ProfileActivity) {
+                } else if (fragment instanceof IProfileActivity) {
                     if (fromGooglePlay && layout.getLastFragment() == fragment) {
                         fragment.finishFragment();
                     } else {

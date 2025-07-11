@@ -80,6 +80,7 @@ import org.telegram.ui.Components.RecyclerItemsEnterAnimator;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.ShareAlert;
 import org.telegram.ui.Components.TimerParticles;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.recorder.HintView2;
@@ -602,7 +603,7 @@ public class ManageLinksActivity extends BaseFragment implements NotificationCen
                     Bundle bundle = new Bundle();
                     bundle.putLong("user_id", user.id);
                     MessagesController.getInstance(UserConfig.selectedAccount).putUser(user, false);
-                    ProfileActivity profileActivity = new ProfileActivity(bundle);
+                    BaseFragment profileActivity = ProfileScreenFeatureConfigs.getProfileActivity(bundle);
                     presentFragment(profileActivity);
                 }
             } else if (position == createNewLinkRow) {

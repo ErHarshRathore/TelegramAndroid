@@ -78,7 +78,7 @@ import org.telegram.ui.Components.ScaleStateListAnimator;
 import org.telegram.ui.Gifts.GiftSheet;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PrivacyControlActivity;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
@@ -1057,12 +1057,12 @@ public class UserSelectorBottomSheet extends BottomSheetWithRecyclerListView imp
                         bottomSheetParams.allowNestedScroll = false;
                         Bundle args = new Bundle();
                         args.putLong("user_id", user.id);
-                        lastFragment.showAsSheet(new ProfileActivity(args), bottomSheetParams);
+                        lastFragment.showAsSheet(ProfileScreenFeatureConfigs.getProfileActivity(args), bottomSheetParams);
                         return;
                     }
                     Bundle args = new Bundle();
                     args.putLong("user_id", user.id);
-                    fragment.presentFragment(new ProfileActivity(args));
+                    fragment.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
                 })
                 .show();
         };

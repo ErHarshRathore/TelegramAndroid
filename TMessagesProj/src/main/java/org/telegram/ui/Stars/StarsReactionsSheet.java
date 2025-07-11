@@ -88,7 +88,7 @@ import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.ScaleStateListAnimator;
 import org.telegram.ui.Components.Text;
 import org.telegram.ui.LaunchActivity;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 
 import java.util.ArrayList;
@@ -346,13 +346,14 @@ public class StarsReactionsSheet extends BottomSheet implements NotificationCent
                     if (senderDialogId == UserConfig.getInstance(currentAccount).getClientUserId()) {
                         args.putBoolean("my_profile", true);
                     }
-                    chatActivity.presentFragment(new ProfileActivity(args) {
-                        @Override
-                        public void onFragmentDestroy() {
-                            super.onFragmentDestroy();
-                            StarsReactionsSheet.this.show();
-                        }
-                    });
+                    chatActivity.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args)); // {
+                        //TODO - make it config driven
+//                        @Override
+//                        public void onFragmentDestroy() {
+//                            super.onFragmentDestroy();
+//                            StarsReactionsSheet.this.show();
+//                        }
+//                    });
                     dismiss();
                 } else {
                     Bundle args = new Bundle();

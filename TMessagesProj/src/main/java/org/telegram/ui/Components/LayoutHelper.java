@@ -83,6 +83,10 @@ public class LayoutHelper {
         return createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT);
     }
 
+    public static FrameLayout.LayoutParams createFrameWrapContent() {
+        return createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT);
+    }
+
     public static FrameLayout.LayoutParams createFrame(int width, int height, int gravity) {
         return new FrameLayout.LayoutParams(getSize(width), getSize(height), gravity);
     }

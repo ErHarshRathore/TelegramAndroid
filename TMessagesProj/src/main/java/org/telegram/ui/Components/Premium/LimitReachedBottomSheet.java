@@ -103,7 +103,7 @@ import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.GroupColorActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PremiumPreviewFragment;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.IProfileActivity;
 import org.telegram.ui.StatisticActivity;
 import org.telegram.ui.Stories.ChannelBoostUtilities;
 import org.telegram.ui.Stories.DarkThemeResourceProvider;
@@ -1149,7 +1149,7 @@ public class LimitReachedBottomSheet extends BottomSheetWithRecyclerListView imp
                 }
                 dismiss();
                 if (isGiveaway) {
-                    if (profileFragment instanceof ProfileActivity) {
+                    if (profileFragment instanceof IProfileActivity) {
                         getBaseFragment().getParentLayout().removeFragmentFromStack(profileFragment);
                     }
                     lastFragment.finishFragment();

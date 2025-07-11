@@ -20,11 +20,13 @@ import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.TextDetailCell;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.Profile.IProfileActivity;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -37,7 +39,7 @@ public class ProfileBirthdayEffect extends View {
 
     private final int currentAccount;
     private final long dialogId;
-    private final ProfileActivity profileActivity;
+    private final IProfileActivity profileActivity;
     private BirthdayEffectFetcher fetcher;
     private BirthdayEffectFetcher fetcherToSet;
 
@@ -50,10 +52,10 @@ public class ProfileBirthdayEffect extends View {
 
     public PointF sourcePoint = new PointF();
 
-    public ProfileBirthdayEffect(ProfileActivity profileActivity, BirthdayEffectFetcher fetcher) {
-        super(profileActivity.getContext());
+    public ProfileBirthdayEffect(IProfileActivity profileActivity, BirthdayEffectFetcher fetcher) {
+        super(((BaseFragment) profileActivity).getContext());
 
-        this.currentAccount = profileActivity.getCurrentAccount();
+        this.currentAccount = ((BaseFragment) profileActivity).getCurrentAccount();
         this.dialogId = profileActivity.getDialogId();
         this.profileActivity = profileActivity;
         this.fetcher = fetcher;
@@ -186,7 +188,7 @@ public class ProfileBirthdayEffect extends View {
 
     private void updateSourcePoint() {
         RecyclerListView listView = profileActivity.getListView();
-        final int position = profileActivity.birthdayRow;
+        final int position = profileActivity.getBirthdayRow();
         if (position < 0) return;
         for (int i = 0; i < listView.getChildCount(); ++i) {
             View child = listView.getChildAt(i);

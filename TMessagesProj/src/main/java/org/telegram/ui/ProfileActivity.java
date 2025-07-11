@@ -76,6 +76,7 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
+import android.util.Log;
 import android.util.Property;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
@@ -154,6 +155,7 @@ import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SavedMessagesController;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.SvgHelper;
@@ -268,6 +270,8 @@ import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.VectorAvatarThumbDrawable;
 import org.telegram.ui.Components.voip.VoIPHelper;
 import org.telegram.ui.Gifts.GiftSheet;
+import org.telegram.ui.Profile.IProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 import org.telegram.ui.Stars.BotStarsActivity;
 import org.telegram.ui.Stars.BotStarsController;
 import org.telegram.ui.Stars.ProfileGiftsView;
@@ -317,7 +321,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class ProfileActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate {
+public class ProfileActivity extends BaseFragment implements IProfileActivity, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, SharedMediaLayout.SharedMediaPreloaderDelegate, ImageUpdater.ImageUpdaterDelegate, SharedMediaLayout.Delegate {
     private final static int PHONE_OPTION_CALL = 0,
         PHONE_OPTION_COPY = 1,
         PHONE_OPTION_TELEGRAM_CALL = 2,
@@ -794,8 +798,19 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return new ProfileActivity(bundle);
     }
 
+    @Override
     public long getTopicId() {
         return topicId;
+    }
+
+    @Override
+    public boolean isTopic() {
+        return isTopic;
+    }
+
+    @Override
+    public ProfileGiftsView getGiftsView() {
+        return giftsView;
     }
 
     public static class AvatarImageView extends BackupImageView {
@@ -3836,6 +3851,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         listView.setLayoutManager(layoutManager);
         listView.setGlowColor(0);
         listView.setAdapter(listAdapter);
+        Log.i("TagHarsh", "ProfileActivity::onCreate: listAdapterCount=" + listAdapter.getItemCount());
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
         listView.setOnItemClickListener((view, position, x, y) -> {
             if (getParentActivity() == null) {
@@ -5803,6 +5819,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         AndroidUtilities.updateViewVisibilityAnimated(ttlIconView, visible, 0.8f, fragmentOpened);
     }
 
+    @Override
     public long getDialogId() {
         if (dialogId != 0) {
             return dialogId;
@@ -5811,6 +5828,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         } else {
             return -chatId;
         }
+    }
+
+    @Override
+    public boolean isMyProfile() {
+        return myProfile;
     }
 
     public void getEmojiStatusLocation(Rect rect) {
@@ -5847,8 +5869,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         getParentLayout().removeFragmentFromStack(fragment);
                         i--;
                     }
-                } else if (fragment instanceof ProfileActivity) {
-                    if (fragment != this && ((ProfileActivity) fragment).getDialogId() == getDialogId() && ((ProfileActivity) fragment).isTopic) {
+                } else if (fragment instanceof IProfileActivity) {
+                    if (fragment != this && ((IProfileActivity) fragment).getDialogId() == getDialogId() && ((IProfileActivity) fragment).isTopic()) {
                         getParentLayout().removeFragmentFromStack(fragment);
                         i--;
                     }
@@ -6190,7 +6212,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             Bundle args = new Bundle();
             args.putLong("user_id", participant.user_id);
             args.putBoolean("preload_messages", true);
-            presentFragment(new ProfileActivity(args));
+            presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args));
         }
         return true;
     }
@@ -7694,6 +7716,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         onlineY = (float) Math.floor(avatarY) + AndroidUtilities.dp(24) + (float) Math.floor(11 * AndroidUtilities.density) + avatarContainer.getMeasuredHeight() * (avatarScale - (42f + 18f) / 42f) / 2f;
     }
 
+    @Override
+    public int getBirthdayRow() {
+        return birthdayRow;
+    }
+
+    @Override
     public RecyclerListView getListView() {
         return listView;
     }
@@ -8313,6 +8341,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return super.canBeginSlide();
     }
 
+    @Override
     public UndoView getUndoView() {
         return undoView;
     }
@@ -8337,6 +8366,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         fullyVisible = false;
     }
 
+    @Override
     public void setPlayProfileAnimation(int type) {
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         if (!AndroidUtilities.isTablet()) {
@@ -8866,6 +8896,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    @Override
     public void setChatInfo(TLRPC.ChatFull value) {
         chatInfo = value;
         if (chatInfo != null && chatInfo.migrated_from_chat_id != 0 && mergeDialogId == 0) {
@@ -8897,6 +8928,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return getMessagesController().getStoriesController().hasStories(getDialogId()) && !isTopic;
     }
 
+    @Override
     public void setUserInfo(
         TLRPC.UserFull value,
         ProfileChannelCell.ChannelMessageFetcher channelMessageFetcher,
@@ -8984,6 +9016,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     public boolean isChat() {
         return chatId != 0;
+    }
+
+    @Override
+    public SharedMediaLayout getSharedMediaLayout() {
+        return sharedMediaLayout;
     }
 
     private void updateRowsIds() {
@@ -11039,6 +11076,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         avatarProgressView.setProgress(0.0f);
     }
 
+    @Override
+    public void didUploadFailed() {
+        ImageUpdater.ImageUpdaterDelegate.super.didUploadFailed();
+    }
+
+    @Override
+    public boolean canFinishFragment() {
+        return ImageUpdater.ImageUpdaterDelegate.super.canFinishFragment();
+    }
+
     int avatarUploadingRequest;
     @Override
     public void didUploadPhoto(final TLRPC.InputFile photo, final TLRPC.InputFile video, double videoStartTimestamp, String videoPath, TLRPC.PhotoSize bigSize, final TLRPC.PhotoSize smallSize, boolean isVideo, TLRPC.VideoSize emojiMarkup) {
@@ -11147,6 +11194,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
             actionBar.createMenu().requestLayout();
         });
+    }
+
+    @Override
+    public PhotoViewer.PlaceProviderObject getCloseIntoObject() {
+        return ImageUpdater.ImageUpdaterDelegate.super.getCloseIntoObject();
+    }
+
+    @Override
+    public boolean supportsBulletin() {
+        return ImageUpdater.ImageUpdaterDelegate.super.supportsBulletin();
+    }
+
+    @Override
+    public String getInitialSearchString() {
+        return ImageUpdater.ImageUpdaterDelegate.super.getInitialSearchString();
     }
 
     private void showAvatarProgress(boolean show, boolean animated) {
@@ -13585,9 +13647,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    @Override
     public void scrollToSharedMedia() {
         scrollToSharedMedia(false);
     }
+
+    @Override
     public void scrollToSharedMedia(boolean animated) {
         if (sharedMediaRow >= 0) {
             if (animated) {

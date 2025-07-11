@@ -61,7 +61,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.UserCell;
 import org.telegram.ui.Gifts.GiftSheet;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.IProfileActivity;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.Stories.recorder.ToggleButton;
 
@@ -1376,7 +1376,7 @@ public class ItemOptions {
             }
             dim = ColorUtils.setAlphaComponent(0x00000000, dimAlpha);
 
-            if (drawScrim && scrimView instanceof UserCell && fragment instanceof ProfileActivity) {
+            if (drawScrim && scrimView instanceof UserCell && fragment instanceof IProfileActivity) {
                 cachedBitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
                 cachedBitmap = Bitmap.createBitmap(scrimView.getWidth() + viewAdditionalOffsets.width(), scrimView.getHeight() + viewAdditionalOffsets.height(), Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(cachedBitmap);

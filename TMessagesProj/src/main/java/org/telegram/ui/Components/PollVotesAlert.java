@@ -60,13 +60,15 @@ import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.ChatActivity;
-import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Profile.IProfileActivity;
+import org.telegram.ui.Profile.ProfileScreenFeatureConfigs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -878,13 +880,15 @@ public class PollVotesAlert extends BottomSheet {
                     args.putLong("chat_id", userCell.currentChat.id);
                 }
                 dismiss();
-                ProfileActivity fragment = new ProfileActivity(args);
-                if (userCell.currentUser != null) {
-                    TLRPC.User currentUser = parentFragment.getCurrentUser();
-                    fragment.setPlayProfileAnimation(currentUser != null && currentUser.id == userCell.currentUser.id ? 1 : 0);
-                } else {
-                    TLRPC.Chat currentChat = parentFragment.getCurrentChat();
-                    fragment.setPlayProfileAnimation(currentChat != null && currentChat.id == userCell.currentChat.id ? 1 : 0);
+                BaseFragment fragment = ProfileScreenFeatureConfigs.getProfileActivity(args);
+                if (fragment instanceof IProfileActivity) {
+                    if (userCell.currentUser != null) {
+                        TLRPC.User currentUser = parentFragment.getCurrentUser();
+                        ((IProfileActivity) fragment).setPlayProfileAnimation(currentUser != null && currentUser.id == userCell.currentUser.id ? 1 : 0);
+                    } else {
+                        TLRPC.Chat currentChat = parentFragment.getCurrentChat();
+                        ((IProfileActivity) fragment).setPlayProfileAnimation(currentChat != null && currentChat.id == userCell.currentChat.id ? 1 : 0);
+                    }
                 }
                 parentFragment.presentFragment(fragment);
             }
