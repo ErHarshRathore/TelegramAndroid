@@ -1,8 +1,8 @@
 package org.telegram.ui.Profile;
 
 
-import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -12,6 +12,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import org.telegram.ui.Components.ProfileGalleryView;
 import org.telegram.ui.Profile.ProfileScreenFeatureConfigs.ProfileActivityV2Configs.AvatarImageContainerAnimationConfigs;
 
 import androidx.annotation.Nullable;
@@ -20,6 +21,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.ProfileActivity;
+import org.telegram.ui.Stars.ProfileGiftsView;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -28,11 +30,7 @@ public class ProfileActivityLayout extends FrameLayout {
     
     static String TAG = ProfileActivityLayout.class.getSimpleName();
 
-    static String INITIAL_TEXT = "Initial";
-
-    private Boolean areChildrenInitialized = false;
-
-    private Float verticalScrollOffset = -1f;
+    private Float verticalScrollOffset = 0f;
     private ArrayList<Runnable> onVerticalScrollOffsetChangeListeners = new ArrayList<>();
 
     private FrameLayout topViewContainer;
@@ -46,52 +44,35 @@ public class ProfileActivityLayout extends FrameLayout {
     private FrameLayout smallTextContainer;
     private FrameLayout profileActionButtonsContainer;
 
-    private SimpleTextView progressTextView;
-
     private final AvatarImageContainerAnimationConfigs avatarAnimationConfigs = new AvatarImageContainerAnimationConfigs();
 
     public ProfileActivityLayout(Context context) {
         super(context);
         initializeChildren();
-        bindChildren();
     }
 
     public ProfileActivityLayout(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         initializeChildren();
-        bindChildren();
     }
 
     public ProfileActivityLayout(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initializeChildren();
-        bindChildren();
     }
 
     private void initializeChildren() {
         // Initialize views here if needed
-        initializeProgressTextView();
         initializeTopViewContainer();
-
-        areChildrenInitialized = true;
-    }
-
-    private void bindChildren() {
-        if (!areChildrenInitialized) initializeChildren();
-
-        // TODO @Harsh - remove this UI
-        addChild(
-                this,
-                progressTextView,
-                LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER),
-                this::initializeProgressTextView
-        );
-        setVerticalScrollOffset(-0.5f);
-        setVerticalScrollOffset(0f);
     }
 
     private void addOnVerticalScrollOffsetChangeListener(Runnable listener) {
         onVerticalScrollOffsetChangeListeners.add(listener);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
     }
 
     public void setVerticalScrollOffset(Float verticalScrollOffset) {
@@ -132,13 +113,6 @@ public class ProfileActivityLayout extends FrameLayout {
         for (Runnable listener : onVerticalScrollOffsetChangeListeners) {
             AndroidUtilities.runOnUIThread(listener);
         }
-
-        requestRecomposition();
-    }
-
-    @SuppressLint("DefaultLocale")
-    void requestRecomposition() {
-        progressTextView.setText(String.format("%.4f", verticalScrollOffset));
     }
 
     private void onStartScrollAnimation(ScrollAnimationType type) {
@@ -151,7 +125,7 @@ public class ProfileActivityLayout extends FrameLayout {
             avatarAnimationConfigs.targetSize = 0;
 
             avatarAnimationConfigs.initialBottomPadding = metadataContainer.getHeight();
-            avatarAnimationConfigs.targetBottomPadding = metadataContainer.getHeight() + AndroidUtilities.statusBarHeight;
+            avatarAnimationConfigs.targetBottomPadding = metadataContainer.getHeight() + AndroidUtilities.statusBarHeight - 20;
         } else if (type == ScrollAnimationType.MIDDLE_TO_BOTTOM || type == ScrollAnimationType.BOTTOM_TO_MIDDLE) {
             avatarAnimationConfigs.initialSize = ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarSizeDP;
             avatarAnimationConfigs.targetSize = super.getContext().getResources().getDisplayMetrics().widthPixels;
@@ -190,7 +164,6 @@ public class ProfileActivityLayout extends FrameLayout {
 
         if (type == ScrollAnimationType.TOP_TO_MIDDLE || type == ScrollAnimationType.BOTTOM_TO_MIDDLE) {
             avatarImageAnimatedContainer.setPadding(0, (int) avatarAnimationConfigs.initialTopPadding, 0, (int) avatarAnimationConfigs.initialBottomPadding);
-//            metadataContainer.setTranslationY(metadataContainerAnimationConfigs.initialTranslationY);
         } else {
             avatarImageAnimatedContainer.setPadding(0, (int) avatarAnimationConfigs.targetTopPadding, 0, (int) avatarAnimationConfigs.targetBottomPadding);
         }
@@ -250,16 +223,6 @@ public class ProfileActivityLayout extends FrameLayout {
         addChild(parent, child, layoutParams, 2, initializer);
     }
 
-    /** progressTextView initialization */
-    private void initializeProgressTextView() {
-        progressTextView = new SimpleTextView(getContext());
-        progressTextView.setWidthWrapContent(true);
-        progressTextView.setText(INITIAL_TEXT);
-        progressTextView.setTextSize(18);
-        progressTextView.setPadding(8, 8, 8, 8);
-        progressTextView.setBackgroundColor(0xaaffffff);
-    }
-
     /** topViewContainer initialization */
     private void initializeTopViewContainer() {
         topViewContainer = new FrameLayout(getContext());
@@ -280,8 +243,6 @@ public class ProfileActivityLayout extends FrameLayout {
     /** topViewStickerOverlay initialization */
     private void initializeTopViewStickerOverlay() {
         topViewStickerOverlay = new FrameLayout(getContext());
-        topViewStickerOverlay.setId(View.generateViewId());
-//        topViewStickerOverlay.setBackgroundColor(0x77000000);
         topViewStickerOverlay.setPadding(0, 0, 0, 0);
 
         topViewContainer.addView(
@@ -293,9 +254,7 @@ public class ProfileActivityLayout extends FrameLayout {
     /** profileGiftsOverlay initialization */
     private void initializeProfileGiftsOverlay() {
         profileGiftsOverlay = new FrameLayout(getContext());
-        profileGiftsOverlay.setId(View.generateViewId());
-//        profileGiftsOverlay.setBackgroundColor(0x22ffffff);
-        profileGiftsOverlay.setPadding(0, 0, 0, 100);
+        profileGiftsOverlay.setPadding(0, 0, 0, 0);
 
         topViewContainer.addView(
                 profileGiftsOverlay,
@@ -305,24 +264,31 @@ public class ProfileActivityLayout extends FrameLayout {
 
     /** profileMetaOverlay initialization */
     private void initializeProfileMetaOverlay() {
-        profileMetaOverlay = new RelativeLayout(getContext());
-        profileMetaOverlay.setId(View.generateViewId());
-//        profileMetaOverlay.setBackgroundColor(0x55448822);
-        profileMetaOverlay.setPadding(0, 0, 0, 0);
+        profileMetaOverlay = new RelativeLayout(getContext()) {
+            @Override
+            protected void onAttachedToWindow() {
+                super.onAttachedToWindow();
+                AndroidUtilities.runOnUIThread(() -> {
+                    if (verticalScrollOffset == 0f) avatarImageAnimatedContainer.setPadding(
+                            0,
+                            ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarTopMarginDP,
+                            0,
+                            metadataContainer.getHeight()
+                    );
+                    ProfileActivityLayout.this.requestLayout();
+                }, 500);
+            }
+        };
 
-        topViewContainer.addView(
-                profileMetaOverlay,
-                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT)
-        );
+        profileMetaOverlay.setBackgroundColor(0xAA777777);
+        profileMetaOverlay.setPadding(0, 0, 0, 0);
 
         initializeAvatarImageAnimatedContainer();
         initializeMetadataContainer();
 
-        avatarImageAnimatedContainer.setPadding(
-                0,
-                ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarTopMarginDP,
-                0,
-                metadataContainer.getHeight()
+        topViewContainer.addView(
+                profileMetaOverlay,
+                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT)
         );
     }
 
@@ -336,12 +302,12 @@ public class ProfileActivityLayout extends FrameLayout {
                 avatarImageAnimatedContainer,
                 LayoutHelper.createRelative(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, RelativeLayout.CENTER_HORIZONTAL | RelativeLayout.ALIGN_PARENT_TOP)
         );
-
     }
 
     /** avatarImageViewFrame initialization */
     private void initializeAvatarImageFrame() {
         avatarImageFrame = new FrameLayout(getContext());
+        avatarImageFrame.setClipChildren(true);
         int size = ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarSizeDP;
         avatarImageFrame.setLayoutParams(new LayoutParams(size, size));
         addChild(avatarImageAnimatedContainer, avatarImageFrame, LayoutHelper.createFrameWrapContent(), this::initializeAvatarImageAnimatedContainer);
@@ -353,7 +319,6 @@ public class ProfileActivityLayout extends FrameLayout {
         metadataContainer = new LinearLayout(getContext());
         metadataContainer.setId(View.generateViewId());
         metadataContainer.setOrientation(LinearLayout.VERTICAL);
-        metadataContainer.setBackgroundColor(0xaa000000);
         int sidePadding = AndroidUtilities.dp(16);
         metadataContainer.setPadding(sidePadding, avatarImageAnimatedContainer.getHeight() + sidePadding, sidePadding, sidePadding);
 
@@ -374,14 +339,12 @@ public class ProfileActivityLayout extends FrameLayout {
     /** profileNameContainer initialization */
     private void initializeProfileNameContainer() {
         profileNameContainer = new FrameLayout(getContext());
-        profileNameContainer.setBackgroundColor(0xaa00ffff);
         profileNameContainer.setPadding(0, 0, 0, 0);
 
         addChild(
                 metadataContainer,
                 profileNameContainer,
-//                LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL),
-                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 16, Gravity.CENTER_HORIZONTAL),
+                LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL),
                 this::initializeMetadataContainer
         );
     }
@@ -389,14 +352,12 @@ public class ProfileActivityLayout extends FrameLayout {
     /** smallTextContainer initialization */
     private void initializeSmallTextContainer() {
         smallTextContainer = new FrameLayout(getContext());
-        smallTextContainer.setBackgroundColor(0xaaff00ff);
-        smallTextContainer.setPadding(0, AndroidUtilities.dp(16), 0, 0);
+        smallTextContainer.setPadding(0, 0, 0, 0);
 
         addChild(
                 metadataContainer,
                 smallTextContainer,
-//                LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL),
-                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 16, Gravity.CENTER_HORIZONTAL),
+                LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL),
                 this::initializeMetadataContainer
         );
     }
@@ -405,7 +366,7 @@ public class ProfileActivityLayout extends FrameLayout {
     private void initializeProfileActionButtonsContainer() {
         profileActionButtonsContainer = new FrameLayout(getContext());
         profileActionButtonsContainer.setBackgroundColor(0xaaffff00);
-        profileActionButtonsContainer.setPadding(0, AndroidUtilities.dp(16), 0, 0);
+        profileActionButtonsContainer.setPadding(0, AndroidUtilities.dp(120), 0, 0);
 
         addChild(
                 metadataContainer,
@@ -429,11 +390,101 @@ public class ProfileActivityLayout extends FrameLayout {
                 () -> {}
         );
 
-        int radius = ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarSizeDP/2;
+        int initialRadius = ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarSizeDP/2;
         addOnVerticalScrollOffsetChangeListener (() -> {
-            avatarView.setRoundRadius((int) AndroidUtilities.lerp(radius, 0f, verticalScrollOffset));
+            int radius = (int) AndroidUtilities.lerp(initialRadius, 0f, verticalScrollOffset);
 
+            avatarView.setRoundRadius(radius);
             avatarView.setVisibility(verticalScrollOffset < 1f? View.VISIBLE : View.GONE);
+
+
+            if (verticalScrollOffset > 0.5f) {
+                // Assuming 'frameLayout' is your FrameLayout instance
+                GradientDrawable drawable = new GradientDrawable();
+                drawable.setCornerRadius(radius); // Set corner radius in pixels
+
+                avatarImageFrame.setForeground(drawable);
+            }
         });
+    }
+
+    void bindAvatarViewPager(
+            ProfileGalleryView avatarViewPager,
+            OverlaysView avatarOverlaysView,
+            PagerIndicatorView avatarViewPagerIndicatorView
+    ) {
+        addChild(
+                avatarImageFrame,
+                avatarViewPager,
+                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER),
+                () -> {}
+        );
+        addChild(
+                avatarImageFrame,
+                avatarOverlaysView,
+                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER),
+                () -> {}
+        );
+        addChild(
+                avatarImageFrame,
+                avatarViewPagerIndicatorView,
+                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER),
+                () -> {}
+        );
+
+        avatarViewPagerIndicatorView.setVisibility(View.GONE);
+        addOnVerticalScrollOffsetChangeListener (() -> {
+            int visibility1 = (verticalScrollOffset == 1f)? View.VISIBLE : View.GONE;
+            int visibility2 = (verticalScrollOffset > 0.5f)? View.VISIBLE : View.GONE;
+            avatarViewPager.setVisibility(visibility2);
+            avatarOverlaysView.setVisibility(visibility1);
+        });
+    }
+
+    void bindMetadataContainerName(
+            int index,
+            SimpleTextView metadataView
+    ) {
+        addChild(
+                profileNameContainer,
+                metadataView,
+                LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL),
+                () -> {}
+        );
+
+//        addOnVerticalScrollOffsetChangeListener (() -> {
+//
+//        });
+    }
+
+    void bindMetadataContainerSmallText(
+            int index,
+            View metadataView
+    ) {
+        addChild(
+                smallTextContainer,
+                metadataView,
+                LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL),
+                () -> {}
+        );
+
+//        addOnVerticalScrollOffsetChangeListener (() -> {
+//
+//        });
+    }
+
+    void bindGiftsOverlay(
+            ProfileGiftsView giftsOverlayView
+    ) {
+        addChild(
+                profileGiftsOverlay,
+                giftsOverlayView,
+                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER),
+                () -> {}
+        );
+
+//        addOnVerticalScrollOffsetChangeListener (() -> {
+//            giftsOverlayView.setVisibility(verticalScrollOffset == 0f? View.VISIBLE : View.GONE);
+//        });
     }
 }

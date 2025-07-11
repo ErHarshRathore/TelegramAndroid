@@ -347,7 +347,7 @@ public class StarsReactionsSheet extends BottomSheet implements NotificationCent
                         args.putBoolean("my_profile", true);
                     }
                     chatActivity.presentFragment(ProfileScreenFeatureConfigs.getProfileActivity(args)); // {
-                        //TODO @Harsh - make it config driven
+                        //TODO - make it config driven
 //                        @Override
 //                        public void onFragmentDestroy() {
 //                            super.onFragmentDestroy();
