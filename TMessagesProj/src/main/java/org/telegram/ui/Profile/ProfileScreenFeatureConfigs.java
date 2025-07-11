@@ -96,10 +96,15 @@ public class ProfileScreenFeatureConfigs {
         static class AvatarImageContainerAnimationConfigs {
             float initialSize;
             float targetSize;
+
             float initialTopPadding;
             float targetTopPadding;
+
             float initialBottomPadding;
             float targetBottomPadding;
+
+            float initialActionButtonRowHeight;
+            float targetActionButtonRowHeight;
         }
     }
 }

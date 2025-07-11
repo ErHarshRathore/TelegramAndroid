@@ -2,6 +2,8 @@ package org.telegram.ui.Profile;
 
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -9,13 +11,18 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import org.telegram.messenger.R;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.ProfileGalleryView;
 import org.telegram.ui.Profile.ProfileScreenFeatureConfigs.ProfileActivityV2Configs.AvatarImageContainerAnimationConfigs;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.content.res.AppCompatResources;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.SimpleTextView;
@@ -43,6 +50,7 @@ public class ProfileActivityLayout extends FrameLayout {
     private FrameLayout profileNameContainer;
     private FrameLayout smallTextContainer;
     private FrameLayout profileActionButtonsContainer;
+    private LinearLayout profileActionButtonsRow;
 
     private final AvatarImageContainerAnimationConfigs avatarAnimationConfigs = new AvatarImageContainerAnimationConfigs();
 
@@ -126,12 +134,17 @@ public class ProfileActivityLayout extends FrameLayout {
 
             avatarAnimationConfigs.initialBottomPadding = metadataContainer.getHeight();
             avatarAnimationConfigs.targetBottomPadding = metadataContainer.getHeight() + AndroidUtilities.statusBarHeight - 20;
+
+            avatarAnimationConfigs.initialActionButtonRowHeight = AndroidUtilities.dp(120);
+            avatarAnimationConfigs.targetActionButtonRowHeight = 0;
         } else if (type == ScrollAnimationType.MIDDLE_TO_BOTTOM || type == ScrollAnimationType.BOTTOM_TO_MIDDLE) {
             avatarAnimationConfigs.initialSize = ProfileScreenFeatureConfigs.profileActivityV2Configs.uiScrollStateMiddleAvatarSizeDP;
             avatarAnimationConfigs.targetSize = super.getContext().getResources().getDisplayMetrics().widthPixels;
 
             avatarAnimationConfigs.initialBottomPadding = metadataContainer.getHeight();
             avatarAnimationConfigs.targetBottomPadding = 0;
+
+            avatarAnimationConfigs.targetActionButtonRowHeight = 0;
         }
     }
 
@@ -175,7 +188,9 @@ public class ProfileActivityLayout extends FrameLayout {
                 avatarAnimationConfigs.targetSize,
                 -scrollOffset
         );
+
         avatarImageFrame.setLayoutParams(new LayoutParams(avatarSize, avatarSize));
+        profileActionButtonsContainer.setScaleY(1f + scrollOffset);
     }
 
     private void avatarAnimationBetweenMiddleAndBottom(Float scrollOffset) {
@@ -280,7 +295,7 @@ public class ProfileActivityLayout extends FrameLayout {
             }
         };
 
-        profileMetaOverlay.setBackgroundColor(0xAA777777);
+        profileMetaOverlay.setBackgroundColor(0xCC444444);
         profileMetaOverlay.setPadding(0, 0, 0, 0);
 
         initializeAvatarImageAnimatedContainer();
@@ -365,8 +380,9 @@ public class ProfileActivityLayout extends FrameLayout {
     /** profileActionButtonsContainer initialization */
     private void initializeProfileActionButtonsContainer() {
         profileActionButtonsContainer = new FrameLayout(getContext());
-        profileActionButtonsContainer.setBackgroundColor(0xaaffff00);
-        profileActionButtonsContainer.setPadding(0, AndroidUtilities.dp(120), 0, 0);
+        profileActionButtonsContainer.setPadding(0, AndroidUtilities.dp(16), 0, 0);
+
+        initializeProfileActionButtonsRow();
 
         addChild(
                 metadataContainer,
@@ -376,6 +392,67 @@ public class ProfileActivityLayout extends FrameLayout {
         );
     }
 
+    /** profileActionButtonsRow initialization */
+    private void initializeProfileActionButtonsRow() {
+        profileActionButtonsRow = new LinearLayout(getContext());
+        profileActionButtonsRow.setOrientation(LinearLayout.HORIZONTAL);
+
+        for (int i = 0; i < 4; i++) {
+            LinearLayout button = new LinearLayout(getContext());
+            button.setOnClickListener((view) -> {});
+
+            GradientDrawable drawable = new GradientDrawable();
+            drawable.setColor(0x55AAAAAA);
+            drawable.setCornerRadius(32f); // Set corner radius
+            button.setBackground(drawable);
+            button.setOrientation(LinearLayout.VERTICAL);
+            button.setGravity(Gravity.CENTER_HORIZONTAL);
+            button.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(4), AndroidUtilities.dp(12), AndroidUtilities.dp(4));
+
+            int res; String label;
+            if (i == 0) {
+                res = R.drawable.ic_profile_message;
+                label = "Message";
+            } else if (i == 1) {
+                res = R.drawable.ic_profile_video;
+                label = "Video";
+            } else if (i == 2) {
+                res = R.drawable.ic_profile_mute;
+                label = "Mute";
+            } else {
+                res = R.drawable.ic_profile_gift;
+                label = "Gift";
+            }
+
+            Drawable drw = AppCompatResources.getDrawable(getContext(), res);
+            ImageView img = new ImageView(getContext());
+            img.setImageDrawable(drw);
+            button.addView(img, LayoutHelper.createLinear(36, 36, 1f));
+
+            SimpleTextView txt = new SimpleTextView(getContext());
+            txt.setText(label);
+            txt.setTextSize(13);
+            txt.setTypeface(AndroidUtilities.bold());
+            txt.setTextColor(Color.WHITE);
+            txt.setGravity(Gravity.CENTER_HORIZONTAL);
+            button.addView(txt, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, AndroidUtilities.dp(2), 0, 0));
+
+//            button.setBackgroundResource(R.drawable.ic_profile_message);
+            LinearLayout.LayoutParams lp = LayoutHelper.createLinear(
+                    LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_HORIZONTAL,
+                    i == 0? 0: 4, 0, i == 3? 0: 4, 0
+            );
+            lp.weight = 1f;
+            profileActionButtonsRow.addView(button, lp);
+        }
+
+        addChild(
+                profileActionButtonsContainer,
+                profileActionButtonsRow,
+                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL),
+                this::initializeProfileActionButtonsContainer
+        );
+    }
 
     // ================================= View item placing methods =================================
 
